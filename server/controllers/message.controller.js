@@ -209,10 +209,10 @@ export const deleteMessage = catchAsyncError(async (req, res, next) => {
 
 
 export const imageUpload = async (req, res) => {
-  try {
+  try {            
     console.log("🧪 req.files:", req.files);
     console.log("🧪 req.body:", req.body);
-
+                  
     if (!req.files || !req.files.image) {
       console.log("❌ IMAGE NOT FOUND IN req.files");
       return res.status(400).json({ message: "No image file found" });
@@ -277,7 +277,7 @@ export const updateMessage = catchAsyncError(async (req, res, next) => {
 
 export const sendMessage = catchAsyncError(async (req, res, next) => {
   
-    const { senderId, receiverId, content , image } = req.body;
+    const { replyTo ,senderId, receiverId, content , image } = req.body;
 
     if (!senderId || !receiverId || !content ) {
       return next(new ErrorHandler("All fields are required", 400));
@@ -299,6 +299,7 @@ export const sendMessage = catchAsyncError(async (req, res, next) => {
       receiverId,
       content,
       imageUrl,
+      replyTo,
       status: "sent"
     });                            
 
@@ -306,26 +307,82 @@ export const sendMessage = catchAsyncError(async (req, res, next) => {
 
 });
 
+ 
 
-
-export const getMessage = catchAsyncError(async (req, res, next) => {
+// export const getMessage = catchAsyncError(async (req, res, next) => {
+      
+//     const { senderId, receiverId } = req.params;
     
-    const { senderId, receiverId } = req.params;
-    
-    if (!senderId || !receiverId ) {
-      return next(new ErrorHandler("receiverId and senderId is required", 400));
-    }
+//     if (!senderId || !receiverId ) {
+//       return next(new ErrorHandler("receiverId and senderId is required", 400));
+//     }
                 
+//     const messages = await Message.find({
+//        $or: [
+//          {senderId, receiverId},
+//          {senderId: receiverId, receiverId: senderId}
+//        ]
+//     })
+//     .populate("senderId", "name profilePic")
+//     .populate({
+//        path: "replyTo",
+//       select: "content imageUrl senderId",
+//       populate: {
+//          path: "senderId",
+//          select: "name profilePic",
+//       },
+//     })
+//     .sort({ createdAt: 1});     
+   
+//     return res.status(200).json({ success: true, messages });
+
+// });
+
+ 
+
+export const getMessage = catchAsyncError(
+  async (req, res) => {
+
+    const { receiverId } = req.params;
+    const senderId = req.user._id;         
+    
     const messages = await Message.find({
-       $or: [
-         {senderId, receiverId},
-         {senderId: receiverId, receiverId: senderId}
-       ]
-    })
+        $or: [
+          {senderId, receiverId},     
+          { senderId: receiverId, receiverId: senderId},
+        ]
+    }).populate("senderId", "name profilePic")
+    .sort({ createdAt: 1 });
 
-    return res.status(200).json({ success: true, messages });
+    return res.status(200).json({
+      success: true,
+      messages,
+    });
+  }
+);
 
-});
+
+
+export const getGroupMessage = catchAsyncError ( 
+  async (req, res) => { 
+
+  const { chatId } = req.params;
+  
+  const messages = await Message.find({
+    chatId,    
+  })
+
+  .populate("senderId", "name profilePic")
+  .sort({ createdAt: 1 });
+
+  return res.status(200).json({
+    success: true,
+    messages
+  })
+
+}) 
+
+
 
 
 
@@ -358,9 +415,6 @@ export const updatedMessageStatus = catchAsyncError(async (req, res, next) => {
     });
 
 });
-
-
-
 
 
 
@@ -413,3 +467,7 @@ export const messageSave = catchAsyncError(async(req, res, next) => {
   res.status(201).json({ message });
 
 });
+
+
+
+

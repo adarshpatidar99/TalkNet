@@ -116,7 +116,7 @@
 //               backdropFilter: "blur(6px)",
 //               transition: "all 0.2s",
 //             }}
-//           >
+//           >        
 //             <img
 //               src={
 //                 currentUser?.avatar?.url ||
@@ -662,31 +662,203 @@
 
 
 
+// import React, { useEffect, useState } from "react";
+// import axios from "axios";
+// import { useNavigate } from "react-router-dom";
+// import { toast, ToastContainer } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+// import { CiMenuKebab } from "react-icons/ci";
+// import { MdOutlineLogout } from "react-icons/md";
+
+// // ✅ IMPORTANT: correct way to import local image
+// import logo from "../../assets/TalkNet2.png";
+
+// const Navbar = () => {
+//   const navigate = useNavigate();
+//   const [currentUser, setCurrentUser] = useState(null);
+//   const [loading, setLoading] = useState(true);
+
+//   const [showMenu, setShowMenu] = useState(false);
+
+//   useEffect(() => {
+//     const fetchCurrentUser = async () => {
+//       try {
+//         const res = await axios.get("http://localhost:5000/api/v1/user/me", {
+//           withCredentials: true,
+//         });
+//         setCurrentUser(res.data.user);
+//       } catch (err) {
+//         if (err.response?.status === 401) navigate("/login");
+//         else console.error(err);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchCurrentUser();
+//   }, [navigate]);
+
+//   const handleLogout = async () => {
+//     try {
+//       await axios.get("http://localhost:5000/api/v1/user/logout", {
+//         withCredentials: true,
+//       });
+
+//       toast.success("Logged out successfully!", {
+//         position: "top-center",
+//       });
+
+//       setTimeout(() => navigate("/login"), 800);
+//     } catch (err) {
+//       console.error(err);
+//       toast.error("Logout failed!", { position: "top-center" });
+//     }
+//   };
+
+//   return (
+//     <>
+//       <ToastContainer />
+
+//       {/* NAVBAR (SMALL HEIGHT) */}
+//       <nav className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-200/60">
+//         <div className="flex items-center justify-between px-3 md:px-6 h-11">    
+
+//           {/* LEFT SIDE */}
+//           <div className="flex items-center ">
+
+//             {/* LOGO BOX (NO WHITE BACKGROUND ISSUE) */}
+//             <div className="flex items-center justify-center h-8 w-10">
+//               <img
+//                 src={logo}
+//                 alt="TalkNet2"
+//                 className="h-12 w-10 "
+//               />
+//             </div>
+
+//             {/* NAME */}
+//             {/* <h1 className="text-base md:text-lg font-semibold text-slate-700">
+//               TalkNet
+//             </h1> */}
+//             <h1 className="text-base md:text-lg font-semibold bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+//   TalkNet
+// </h1>
+//           </div>
+
+//           {/* RIGHT SIDE */}
+//           <div className="flex items-center gap-2">
+
+//             {/* USER */}
+//             {/* <div className="flex items-center gap-1 px-0.5 py-0.5 rounded-full border border-slate-300 bg-white/60">
+//               <img
+//                 src={
+//                   currentUser?.avatar?.url ||
+//                   "https://www.w3schools.com/w3images/avatar2.png"
+//                 }
+//                 className="h-7 w-7 rounded-full  object-cover"
+//               />
+
+//               <span className="hidden md:block text-sm text-slate-700">
+//                 {loading ? "..." : currentUser?.name || "Guest"}
+//               </span>
+//             </div> */}
+//             <div className="flex items-center gap-1 px-0.5 py-0.5 rounded-full border border-slate-300 bg-white/60">
+
+//   <img onClick={() => navigate('/profile')}
+//     src={currentUser?.avatar?.url || "https://www.w3schools.com/w3images/avatar2.png"}
+//     className="h-7 w-7 cursor-pointer rounded-full object-cover"
+//   />
+
+//   <span className="hidden md:flex md:px-3 md:py-1 md:rounded-full md:bg-white/70 md:backdrop-blur-md md:border md:border-slate-200 md:text-sm md:text-slate-700 md:shadow-sm">
+//     {loading ? "..." : currentUser?.name || "Guest"}
+//   </span>
+
+// </div>
+
+                         
+//             <div className="relative" >
+//                 <button 
+//                 className="cursor-pointer p-2 rounded-full"  
+//                 onClick={() => setShowMenu(!showMenu)}> 
+//                     <CiMenuKebab size={20} />
+//                 </button>
+
+//                 {showMenu && (
+//                   <div className="">
+
+//                     <button 
+//                       onClick{() => {
+//                           navigate('/create-group');
+//                           setShowMenu(false);
+//                       }}
+//                       New Group 
+//                     </button>
+ 
+//                   </div>
+
+//                   )}
+//                 )}
+
+//             </div>
+
+//             {/* LOGOUT */}       
+//             <button  
+//               onClick={handleLogout}
+//               className="flex items-center gap-1 cursor-pointer px-2 py-2 rounded-full border border-slate-300 bg-white hover:bg-slate-100 transition"
+//             >
+//               <MdOutlineLogout />
+//               {/* <span className="hidden md:inline text-sm">Logout</span> */}
+//             </button>
+
+//           </div>
+//         </div>
+//       </nav>
+//     </>
+//   );
+// };
+
+// export default Navbar;
+
+
+
+
+
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { MdOutlineLogout } from "react-icons/md";
 
-// ✅ IMPORTANT: correct way to import local image
+import { CiMenuKebab } from "react-icons/ci";
+import { MdOutlineLogout } from "react-icons/md";
+import { IoPeopleOutline } from "react-icons/io5";
+
 import logo from "../../assets/TalkNet2.png";
 
 const Navbar = () => {
   const navigate = useNavigate();
+
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/v1/user/me", {
-          withCredentials: true,
-        });
+        const res = await axios.get(
+          "http://localhost:5000/api/v1/user/me",
+          {
+            withCredentials: true,
+          }
+        );
+
         setCurrentUser(res.data.user);
       } catch (err) {
-        if (err.response?.status === 401) navigate("/login");
-        else console.error(err);
+        if (err.response?.status === 401) {
+          navigate("/login");
+        } else {
+          console.error(err);
+        }
       } finally {
         setLoading(false);
       }
@@ -697,18 +869,26 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:5000/api/v1/user/logout", {
-        withCredentials: true,
-      });
+      await axios.get(
+        "http://localhost:5000/api/v1/user/logout",
+        {
+          withCredentials: true,
+        }
+      );
 
       toast.success("Logged out successfully!", {
         position: "top-center",
       });
 
-      setTimeout(() => navigate("/login"), 800);
+      setTimeout(() => {
+        navigate("/login");
+      }, 800);
     } catch (err) {
       console.error(err);
-      toast.error("Logout failed!", { position: "top-center" });
+
+      toast.error("Logout failed!", {
+        position: "top-center",
+      });
     }
   };
 
@@ -716,71 +896,96 @@ const Navbar = () => {
     <>
       <ToastContainer />
 
-      {/* NAVBAR (SMALL HEIGHT) */}
       <nav className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-200/60">
         <div className="flex items-center justify-between px-3 md:px-6 h-11">
 
-          {/* LEFT SIDE */}
-          <div className="flex items-center ">
+          {/* LEFT */}
+          <div className="flex items-center">
 
-            {/* LOGO BOX (NO WHITE BACKGROUND ISSUE) */}
             <div className="flex items-center justify-center h-8 w-10">
               <img
                 src={logo}
-                alt="TalkNet2"
-                className="h-12 w-10 "
+                alt="TalkNet"
+                className="h-12 w-10"
               />
             </div>
 
-            {/* NAME */}
-            {/* <h1 className="text-base md:text-lg font-semibold text-slate-700">
-              TalkNet
-            </h1> */}
             <h1 className="text-base md:text-lg font-semibold bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-  TalkNet
-</h1>
+              TalkNet
+            </h1>
+
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT */}
           <div className="flex items-center gap-2">
 
             {/* USER */}
-            {/* <div className="flex items-center gap-1 px-0.5 py-0.5 rounded-full border border-slate-300 bg-white/60">
+            <div className="flex items-center gap-1 px-0.5 py-0.5 rounded-full border border-slate-300 bg-white/60">
+
               <img
+                onClick={() => navigate("/profile")}
                 src={
                   currentUser?.avatar?.url ||
                   "https://www.w3schools.com/w3images/avatar2.png"
                 }
-                className="h-7 w-7 rounded-full  object-cover"
+                alt="profile"
+                className="h-7 w-7 cursor-pointer rounded-full object-cover"
               />
 
-              <span className="hidden md:block text-sm text-slate-700">
-                {loading ? "..." : currentUser?.name || "Guest"}
+              <span className="hidden md:flex md:px-3 md:py-1 md:rounded-full md:bg-white/70 md:border md:border-slate-200 md:text-sm md:text-slate-700 md:shadow-sm">
+                {loading
+                  ? "..."
+                  : currentUser?.name || "Guest"}
               </span>
-            </div> */}
-            <div className="flex items-center gap-1 px-0.5 py-0.5 rounded-full border border-slate-300 bg-white/60">
 
-  <img onClick={() => navigate('/profile')}
-    src={currentUser?.avatar?.url || "https://www.w3schools.com/w3images/avatar2.png"}
-    className="h-7 w-7 cursor-pointer rounded-full object-cover"
-  />
+            </div>
 
-  <span className="hidden md:flex md:px-3 md:py-1 md:rounded-full md:bg-white/70 md:backdrop-blur-md md:border md:border-slate-200 md:text-sm md:text-slate-700 md:shadow-sm">
-    {loading ? "..." : currentUser?.name || "Guest"}
-  </span>
+            {/* MENU */}
+            <div className="relative">
 
-</div>
+              <button
+                onClick={() =>
+                  setShowMenu(!showMenu)
+                }
+                className="cursor-pointer p-2 rounded-full hover:bg-slate-100 transition"
+              >
+                <CiMenuKebab size={20} />
+              </button>
 
-            {/* LOGOUT */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1 cursor-pointer px-2 py-2 rounded-full border border-slate-300 bg-white hover:bg-slate-100 transition"
-            >
-              <MdOutlineLogout />
-              {/* <span className="hidden md:inline text-sm">Logout</span> */}
-            </button>
+              {showMenu && (
+                <div className="absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50">
+
+                  <button
+                    onClick={() => {
+                      navigate("/create-group");
+                      setShowMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 text-sm text-slate-700 hover:bg-slate-100 transition"
+                  >
+                    <IoPeopleOutline size={18} />
+                    New Group
+                  </button>
+
+                  <div className="border-t border-slate-200" />
+
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition"
+                  >
+                    <MdOutlineLogout size={18} />
+                    Logout
+                  </button>
+
+                </div>
+              )}
+
+            </div>
 
           </div>
+
         </div>
       </nav>
     </>
@@ -788,3 +993,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

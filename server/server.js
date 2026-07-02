@@ -17,6 +17,8 @@ const io = new Server(httpServer, {
   },
 });
 
+app.set("io", io);
+                                                   
 // Pass io to socket handler
 socketHandlers(io);
 

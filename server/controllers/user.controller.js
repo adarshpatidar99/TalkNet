@@ -7,58 +7,93 @@ import cloudinary from "../config/cloudinary.js";
 
 
 // REGISTER USER
+
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, username, password } = req.body;
 
-  if (!name || !email || !username || !password)
-    return next(new ErrorHandler("All fields are required", 400));
-
-  // IMAGE CHECK
-  if (!req.files || !req.files.avatar) {
-    return next(new ErrorHandler("Image is required, please provide image", 400));
-  }
-
-  const avatar = req.files.avatar;
-
-  // CORRECT MIME TYPES
-  const allowedMimeTypes = ["image/png", "image/jpeg", "image/webp", "image/jpg"];
-
-  if (!allowedMimeTypes.includes(avatar.mimetype)) {
+  if (!name || !email || !username || !password) {
     return next(
-      new ErrorHandler("Please provide avatar in valid format: png, jpeg, webp, jpg", 400)
+      new ErrorHandler("All fields are required", 400)
     );
   }
 
-  // UPLOAD TO CLOUDINARY
-  const cloudinaryResponse = await cloudinary.uploader.upload(
-  avatar.tempFilePath,
-  { folder: "Realtime-Chat-App" }
-);
+  const existingUser = await User.findOne({ email });
 
-
-  if (!cloudinaryResponse || !cloudinaryResponse.secure_url) {
-    return next(new ErrorHandler("Failed to upload image on Cloudinary...", 500));
+  if (existingUser) {
+    return next(
+      new ErrorHandler(
+        "User already exists with this email",
+        400
+      )
+    );
   }
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser)
-    return next(new ErrorHandler("User already exists with this email", 400));
+  let avatarData = {
+    public_id: "",
+    url: "",
+  };
 
+  // Avatar is optional
+  if (req.files?.avatar) {
+    const avatar = req.files.avatar;
+
+    const allowedMimeTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/webp",
+    ];
+
+    if (!allowedMimeTypes.includes(avatar.mimetype)) {
+      return next(
+        new ErrorHandler(
+          "Please provide avatar in png, jpg, jpeg or webp format",
+          400
+        )
+      );
+    }
+
+    const cloudinaryResponse =
+      await cloudinary.uploader.upload(
+        avatar.tempFilePath,
+        {
+          folder: "Realtime-Chat-App",
+        }
+      );
+
+    if (
+      !cloudinaryResponse ||
+      !cloudinaryResponse.secure_url
+    ) {
+      return next(
+        new ErrorHandler(
+          "Failed to upload image to Cloudinary",
+          500
+        )
+      );
+    }
+
+    avatarData = {
+      public_id: cloudinaryResponse.public_id,
+      url: cloudinaryResponse.secure_url,
+    };
+  }
 
   const user = await User.create({
     name,
     email,
     username,
     password,
-    avatar: {
-      public_id: cloudinaryResponse.public_id,
-      url: cloudinaryResponse.secure_url,
-    },
+    avatar: avatarData,
   });
 
-  sendToken(user, 200, res, "User registered successfully");
+  sendToken(
+    user,
+    200,
+    res,
+    "User registered successfully"
+  );
 });
-
 
 // LOGIN USER
 export const login = catchAsyncError(async (req, res, next) => {

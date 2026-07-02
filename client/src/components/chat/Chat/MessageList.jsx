@@ -196,6 +196,7 @@ import MessageItem from "./MessageItem";
 
 const MessageList = ({
   messages = [],
+  selectedUser,
   currentUserId,
   onDelete,
 }) => {
@@ -238,6 +239,7 @@ const MessageList = ({
           <MessageItem
             key={msg._id}
             message={msg}
+            selectedUser={selectedUser}
             currentUserId={currentUserId}
             onDelete={onDelete}
           />

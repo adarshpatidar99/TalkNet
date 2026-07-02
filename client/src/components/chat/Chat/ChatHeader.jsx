@@ -114,26 +114,279 @@
 
 
 
-// File Location:
-// src/components/chat/Chat/ChatHeader.jsx
+// // File Location:
+// // src/components/chat/Chat/ChatHeader.jsx
+
+// import React from "react";
+// // import { ArrowLeft } from "lucide-react";
+// import { IoMdArrowBack } from "react-icons/io";
+                                 
+// const ChatHeader = ({
+//   selectedUser,
+//   isPartnerTyping,               
+//   groupTypingUsers: [],
+//   onBack, // Used on mobile to go back to user list
+// }) => {
+
+//   const isGroupChat = selectedUser?.isGroupChat;
+
+//   const avatarUrl = isGroupChat ? selectedUser?.groupImage ||  "https://cdn-icons-png.flaticon.com/512/681/681494.png" : 
+//     selectedUser?.avatar?.url ||
+//     "https://www.w3schools.com/w3images/avatar2.png";
+
+
+//   const isOnline = selectedUser?.isOnline;
+//   const lastSeen = selectedUser?.lastSeen;
+
+  
+//   // Format last seen time
+//   const formatLastSeen = (date) => {
+//     if (!date) return "";
+
+//     const diff = Date.now() - new Date(date).getTime();
+//     const mins = Math.floor(diff / 60000);
+
+//     if (mins < 1) return "just now";
+//     if (mins < 60) return `${mins} min ago`;
+
+//     const hours = Math.floor(mins / 60);
+//     if (hours < 24) return `${hours} hrs ago`;
+
+//     const days = Math.floor(hours / 24);
+//     if (days === 1) return "1 day ago";
+
+//     return `${days} days ago`;
+//   };
+            
+                
+
+//   let statusText = "";
+
+// if (isGroupChat) {                                     
+//   if (groupTypingUsers?.length > 0) {
+//     if (groupTypingUsers.length === 1) {
+//       statusText =
+//         `${groupTypingUsers[0].name} is typing...`;
+//     } else if (groupTypingUsers.length === 2) {
+//       statusText =
+//         `${groupTypingUsers[0].name} and ${groupTypingUsers[1].name} are typing...`;
+//     } else {
+//       statusText =
+//         `${groupTypingUsers[0].name} and ${
+//           groupTypingUsers.length - 1
+//         } others are typing...`;
+//     }
+//   } else {
+//     statusText =
+//       `${selectedUser?.participants?.length || 0} members`;
+//   }
+// } else {
+//   statusText = isPartnerTyping
+//     ? "typing..."
+//     : isOnline
+//     ? "Online"
+//     : lastSeen
+//     ? `last seen ${formatLastSeen(lastSeen)}`
+//     : "Offline";
+// }
+   
+
+
+//   return (
+//     <header className="flex items-center gap-3 border-spacing-x-0.5   px-4 py-3  bg-white shadow-sm">
+//       {/* Mobile Back Button */}
+//       <button
+//         onClick={onBack}
+//         className="md:hidden flex h-9  items-center ml-1 rounded-full  "
+//       >
+//         <IoMdArrowBack />
+//       </button>
+
+//       {/* Avatar */}
+//       <div className="relative shrink-0">
+//         <img
+//           src={avatarUrl}
+//           alt={selectedUser?.name || "User Avatar"}
+//           className="h-10 w-10 rounded-full object-cover  "
+//         />
+
+//       </div>
+      
+
+//       {/* User Info */}
+//       <div className="min-w-0 flex-1">
+//         <h3 className="truncate text-sm font-sans sm:text-base">
+//           {/* {selectedUser?.chatName || "User"} */}
+//           {isGroupChat ? selectedUser?.chatName : selectedUser ?.name || "User"}
+//         </h3>
+
+//         <p
+//           className={`truncate text-xs ${
+//             isPartnerTyping
+//               ? "text-green-500"
+//               : isOnline
+//               ? "text-green-500"
+//               : "text-slate-500"
+//           }`}
+//         >
+//           {statusText}
+//         </p>
+//       </div>
+//     </header>
+//   );
+// };
+
+// export default ChatHeader;
+
+
+
+
+
+
+
+
+
+
+
+// // File Location:
+// // src/components/chat/Chat/ChatHeader.jsx
+
+// import React from "react";
+// import { IoMdArrowBack } from "react-icons/io";
+
+// const ChatHeader = ({
+//   selectedUser,
+//   isPartnerTyping,
+//   groupTypingUsers = [], // ✅ FIXED
+//   onBack,
+// }) => {
+//   const isGroupChat = selectedUser?.isGroupChat;
+
+//   const avatarUrl = isGroupChat
+//     ? selectedUser?.groupImage ||
+//       "https://cdn-icons-png.flaticon.com/512/681/681494.png"
+//     : selectedUser?.avatar?.url ||
+//       "https://www.w3schools.com/w3images/avatar2.png";
+
+//   const isOnline = selectedUser?.isOnline;
+//   const lastSeen = selectedUser?.lastSeen;
+
+//   const formatLastSeen = (date) => {
+//     if (!date) return "";
+
+//     const diff = Date.now() - new Date(date).getTime();
+//     const mins = Math.floor(diff / 60000);
+
+//     if (mins < 1) return "just now";
+//     if (mins < 60) return `${mins} min ago`;
+
+//     const hours = Math.floor(mins / 60);
+//     if (hours < 24) return `${hours} hrs ago`;
+
+//     const days = Math.floor(hours / 24);
+//     if (days === 1) return "1 day ago";
+
+//     return `${days} days ago`;
+//   };
+
+//   // ================= STATUS TEXT =================
+//   let statusText = "";
+
+//   if (isGroupChat) {
+//     if (groupTypingUsers.length > 0) {
+//       if (groupTypingUsers.length === 1) {
+//         statusText = `${groupTypingUsers[0]} is typing...`;
+//       } else if (groupTypingUsers.length === 2) {
+//         statusText = `${groupTypingUsers[0]} and ${groupTypingUsers[1]} are typing...`;
+//       } else {
+//         statusText = `${groupTypingUsers[0]} and ${
+//           groupTypingUsers.length - 1
+//         } others are typing...`;
+//       }
+//     } else {
+//       statusText = `${selectedUser?.participants?.length || 0} members`;
+//     }
+//   } else {
+//     statusText = isPartnerTyping
+//       ? "typing..."
+//       : isOnline
+//       ? "Online"
+//       : lastSeen
+//       ? `last seen ${formatLastSeen(lastSeen)}`
+//       : "Offline";
+//   }
+
+//   return (
+//     <header className="flex items-center gap-3 px-4 py-3 bg-white shadow-sm">
+//       {/* Back Button */}
+//       <button
+//         onClick={onBack}
+//         className="md:hidden flex h-9 items-center ml-1"
+//       >
+//         <IoMdArrowBack />
+//       </button>
+
+//       {/* Avatar */}
+//       <img
+//         src={avatarUrl}
+//         alt="avatar"
+//         className="h-10 w-10 rounded-full object-cover"
+//       />
+
+//       {/* User Info */}
+//       <div className="min-w-0 flex-1">
+//         <h3 className="truncate text-sm sm:text-base font-sans">
+//           {isGroupChat
+//             ? selectedUser?.chatName
+//             : selectedUser?.name || "User"}
+//         </h3>
+
+//         <p
+//           className={`truncate text-xs ${
+//             isPartnerTyping
+//               ? "text-green-500"
+//               : isOnline
+//               ? "text-green-500"
+//               : "text-slate-500"
+//           }`}
+//         >
+//           {statusText}
+//         </p>
+//       </div>
+//     </header>
+//   );
+// };
+
+// export default ChatHeader;
+
+
+
+
+
 
 import React from "react";
-// import { ArrowLeft } from "lucide-react";
 import { IoMdArrowBack } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 
 const ChatHeader = ({
   selectedUser,
   isPartnerTyping,
-  onBack, // Used on mobile to go back to user list
+  groupTypingUsers = [], // ✅ FIXED (default prop)
+  onBack,
 }) => {
-  const avatarUrl =
-    selectedUser?.avatar?.url ||
-    "https://www.w3schools.com/w3images/avatar2.png";
+  const isGroupChat = selectedUser?.isGroupChat;
+
+  const navigate = useNavigate();
+
+  const avatarUrl = isGroupChat
+    ? selectedUser?.groupImage ||
+      "https://cdn-icons-png.flaticon.com/512/681/681494.png"
+    : selectedUser?.avatar?.url ||
+      "https://www.w3schools.com/w3images/avatar2.png";
 
   const isOnline = selectedUser?.isOnline;
   const lastSeen = selectedUser?.lastSeen;
 
-  // Format last seen time
   const formatLastSeen = (date) => {
     if (!date) return "";
 
@@ -152,44 +405,119 @@ const ChatHeader = ({
     return `${days} days ago`;
   };
 
-  // Status text
-  const statusText = isPartnerTyping
+  // // ✅ SAFE STATUS LOGIC
+  // let statusText = "";
+
+  // if (isGroupChat) {
+  //   if (groupTypingUsers.length > 0) {
+  //     statusText =
+  //       groupTypingUsers.length === 1
+  //         ? `${groupTypingUsers[0]} is typing...`
+  //         : groupTypingUsers.length === 2
+  //         ? `${groupTypingUsers[0]} and ${groupTypingUsers[1]} are typing...`
+  //         : `${groupTypingUsers[0]} and ${
+  //             groupTypingUsers.length - 1
+  //           } others are typing...`;
+  //   } else {
+  //     statusText = `${selectedUser?.participants?.length || 0} members`;
+  //   }
+  // } else {
+  //   statusText = isPartnerTyping
+  //     ? "typing..."
+  //     : isOnline
+  //     ? "Online"
+  //     : lastSeen
+  //     ? `last seen ${formatLastSeen(lastSeen)}`
+  //     : "Offline";
+  // }
+
+
+
+
+//   let statusText = "";
+
+// if (isGroupChat) {
+//   const count = Object.keys(groupTypingUsers || {}).length;
+
+//   if (count > 0) {
+//     statusText =
+//       count === 1
+//         ? "Someone is typing..."
+//         : `${count} people are typing...`;
+//   } else {
+//     statusText =
+//       `${selectedUser?.participants?.length || 0} members`;
+//   }
+// } else {
+//   statusText = isPartnerTyping
+//     ? "typing..."
+//     : isOnline
+//     ? "Online"
+//     : lastSeen
+//     ? `last seen ${formatLastSeen(lastSeen)}`
+//     : "Offline";
+// }
+
+
+
+   
+   let statusText = "";
+
+if (isGroupChat) {
+  if (groupTypingUsers.length > 0) {
+    statusText =
+      groupTypingUsers.length === 1
+        ? `${groupTypingUsers[0]} is typing...`
+        : `${groupTypingUsers[0]} and ${groupTypingUsers.length - 1} others are typing...`;
+  } else {
+    statusText = `${selectedUser?.participants?.length || 0} members`;
+  }
+} else {
+  statusText = isPartnerTyping
     ? "typing..."
     : isOnline
     ? "Online"
     : lastSeen
     ? `last seen ${formatLastSeen(lastSeen)}`
     : "Offline";
+}
+
+
+  const openGroupDetails = () => {
+     if(selectedUser?.isGroupChat) {
+        navigate(`/group/${selectedUser._id}`);
+     }
+  }
+
+
+                                      
 
   return (
-    <header className="flex items-center gap-3 border-spacing-x-0.5   px-4 py-3  bg-white shadow-sm">
-      {/* Mobile Back Button */}
+    <header onClick={openGroupDetails} className="flex cursor-pointer items-center gap-3 px-4 py-3 bg-white shadow-sm">
       <button
         onClick={onBack}
-        className="md:hidden flex h-9  items-center ml-1 rounded-full  "
+        className="md:hidden flex h-9 items-center ml-1"
       >
         <IoMdArrowBack />
       </button>
 
-      {/* Avatar */}
-      <div className="relative shrink-0">
-        <img
-          src={avatarUrl}
-          alt={selectedUser?.name || "User Avatar"}
-          className="h-10 w-10 rounded-full object-cover  "
-        />
+      <img
+        src={avatarUrl}
+      
+        className="h-10 w-10 rounded-full object-cover"
+        alt="avatar"
+      />
 
-      </div>
-
-      {/* User Info */}
       <div className="min-w-0 flex-1">
-        <h3 className="truncate text-sm font-sans sm:text-base">
-          {selectedUser?.name || "User"}
+        <h3 className="truncate text-sm sm:text-base">
+          {isGroupChat
+            ? selectedUser?.chatName
+            : selectedUser?.name || "User"}
         </h3>
 
         <p
           className={`truncate text-xs ${
-            isPartnerTyping
+            isPartnerTyping || groupTypingUsers.length > 0
               ? "text-green-500"
               : isOnline
               ? "text-green-500"

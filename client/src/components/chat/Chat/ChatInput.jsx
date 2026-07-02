@@ -1821,7 +1821,7 @@ const ChatInput = ({
               className="
                 absolute right-1 top-1/2 -translate-y-1/2
                 flex h-8 w-8 sm:h-9 sm:w-9
-                items-center justify-center
+                items-center justify-center   
                 rounded-full
                 bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600
                 text-white

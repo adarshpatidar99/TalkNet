@@ -211,6 +211,10 @@ export default function socketHandler(io) {
     // ================= JOIN CHAT ROOM =================
     socket.on("joinChat", async (chatId) => {
       socket.join(chatId);
+
+      console.log("joined  Room:", chatId);
+      
+
     });
 
     // ================= LEAVE CHAT ROOM =================
@@ -282,25 +286,27 @@ export default function socketHandler(io) {
     // ================= GROUP TYPING =================
     socket.on(
       "group-typing",
-      ({ chatId, fromUserId }) => {
-        socket.to(chatId).emit(
+      ({ chatId, fromUserId, userName }) => {
+        socket.to(chatId).emit(  
           "group-userTyping",
           {
-            fromUserId,
+            fromUserId,   
             chatId,
+            userName
           }
         );
       }
     );
 
     socket.on(
-      "group-stop-typing",
-      ({ chatId, fromUserId }) => {
+      "group-stop-typing", 
+      ({ chatId, fromUserId, userName }) => {
         socket.to(chatId).emit(
           "group-stop-userTyping",
           {
             fromUserId,
             chatId,
+            userName
           }
         );
       }
@@ -347,61 +353,55 @@ export default function socketHandler(io) {
     });
 
     // ================= GROUP MESSAGE =================
-    socket.on(
-      "sendGroupMessage",
-      async (msg) => {
-        try {
-          const chat = await Chat.findById(
-            msg.chatId
-          );
+    socket.on("sendGroupMessage", async (msg) => {
+  try {
 
-          if (!chat) {
-            return;
-          }
+    // 1. Find group
+    const chat = await Chat.findById(msg.chatId);
 
-          // Validate sender is member
-          const isMember =
-            chat.participants.some(
-              (participant) =>
-                participant.toString() ===
-                msg.senderId.toString()
-            );
+    if (!chat) {
+      return;
+    }
 
-          if (!isMember) {
-            return;
-          }
-
-          // Populate sender info
-          const fullMessage =
-            await Message.findById(msg._id)
-              .populate(
-                "senderId",
-                "name profilePic"
-              )
-              .populate("chatId");
-
-          // Update latest message
-          await Chat.findByIdAndUpdate(
-            msg.chatId,
-            {
-              latestMessage: msg._id,
-              updatedAt: Date.now(),
-            }
-          );
-
-          // Emit to room
-          io.to(msg.chatId).emit(
-            "receiveGroupMessage",
-            fullMessage
-          );
-        } catch (error) {
-          console.log(
-            "Group Message Error:",
-            error
-          );
-        }
-      }
+    // 2. Check sender is member
+    const isMember = chat.participants.some(
+      (p) => p.toString() === msg.senderId
     );
+
+    if (!isMember) {
+      return;
+    }
+
+    // 3. Save message
+    const fullMessage = await Message.create({
+      chatId: msg.chatId,
+      senderId: msg.senderId,
+      text: msg.text,
+      type: msg.type,
+      imageUrl: msg.imageUrl || "",
+      audioUrl: msg.audioUrl || "",
+      videoUrl: msg.videoUrl || "",
+    });
+
+    // 4. Populate sender details
+    const populatedMessage = await Message.findById(fullMessage._id)
+      .populate("senderId", "name profilePic");
+
+    // 5. Update latest message
+    await Chat.findByIdAndUpdate(msg.chatId, {
+      latestMessage: fullMessage._id,
+    });
+
+    // 6. Emit to group room
+    io.to(msg.chatId).emit(
+      "receiveGroupMessage",
+      populatedMessage
+    );
+
+  } catch (error) {
+    console.log("Group message error:", error);
+  }
+});
 
     // ================= GROUP MESSAGE SEEN =================
     socket.on(
@@ -450,7 +450,7 @@ export default function socketHandler(io) {
     );
 
     // ================= PRIVATE MESSAGE SEEN =================
-    socket.on(
+    socket.on(   
       "message-seen",
       async ({ messageIds, senderId }) => {
         await Message.updateMany(

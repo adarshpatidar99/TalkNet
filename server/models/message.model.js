@@ -14,10 +14,24 @@ const messageSchema = new mongoose.Schema(
       ref: "Chat",      
     },
 
+    seenBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: []  
+      }
+    ],
+
+    replyTo: { 
+       type: mongoose.Schema.Types.ObjectId,
+       ref: "Message", 
+       default: null  
+    },
+
     receiverId: {
       type: mongoose.Schema.Types.ObjectId, // ✅ IMPORTANT
       ref: "User",
-      required: true,
+      default: null
     },
                                                               
     text: {
@@ -46,12 +60,24 @@ const messageSchema = new mongoose.Schema(
       default: "",
     },
 
+    reactions: [
+       {
+         userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+         },
+         emoji: {
+          type: String
+         },
+       }, 
+    ],
+
     status: {
       type: String,
       enum: ["sent", "delivered", "seen"],
       default: "sent", // sent
     },
-  },
+  },                            
   {
     timestamps: true, // ✅ replaces createdAt
   }
