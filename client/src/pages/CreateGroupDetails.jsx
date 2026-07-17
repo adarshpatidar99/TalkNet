@@ -1,108 +1,13 @@
-// import axios from 'axios';
-// import React from 'react'
-// import { useState } from 'react'
-// import { useLocation } from 'react-router-dom'
-
-// const CreateGroupDetails = () => {
-
-//   const location = useLocation(); 
-
-//   const selectedUsers = location.state?.selectedUsers || [];
-                                               
-//   const [groupName, setGroupName] = useState("");
-//   const [groupImage, setGroupImage] = useState(null);
-                                                           
-//   const handleGroupCreate = async() => {
-
-//      const formData = new FormData();
-
-//      formData.append("groupName", groupName);
-//      formData.append("groupImage", groupImage); 
-//      formData.append(
-//         "userIds",
-//         JSON.stringify(selectedUsers)
-//      )
-     
-//      const response = await axios.post('http://localhost:5000/api/v1/chat/group', formData , {
-//        headers: {
-//          "Content-Type": "multipart/form-data",
-//        },
-//      });
-
-//   }
-
-
-//   return (
-    
-//     <>
-    
-//       <div className=''>
-
-//          <div className=''>
-//            <h2 className=''> Create Group </h2>
-//          </div>
-
-//          <div className=''>
-//            <input type='text' className='' placeholder='Group Name' value={groupName} onChange={(e) => setGroupName(e.target.value) } />
-//          </div>
-
-//          <div className=''>
-           
-//            <input 
-//             type="file"
-//             onChange={(e) => setGroupImage(e.target.files[0])}
-//             className=''  
-//            />
-
-//          </div>
-
-//          <div className=''>                     
-//              <p>
-//                Selected Users: {" "} 
-//                {selectedUsers.length}
-//              </p>
-                                                
-//              {selectedUsers.length > 0 && 
-//                selectedUsers.map((userId) => (
-//                   <p key={userId}>   
-//                     {userId.name}
-//                   </p>        
-//                ))}
-
-//          </div>
-
-//          <div className=''>
-//            <button onClick={handleGroupCreate} className=''>
-//               Create Group
-//            </button>
-//          </div>
-
-//       </div>
-    
-//     </>
-
-//   )
-// }
-
-// export default CreateGroupDetails    
-
-
-
-
-
-
-
-
-                         
-
-
-
 import axios from "axios";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { addChat } from "../features/chat/chatSlice";
+import { FiCamera } from "react-icons/fi";
+import Spinner from "../components/Spinner";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const CreateGroupDetails = () => {
   const location = useLocation();
@@ -117,135 +22,72 @@ const CreateGroupDetails = () => {
   const [groupName, setGroupName] =
     useState("");
 
+  const [groupNameError, setGroupNameError] = useState("");
+
+  const [creatingGroup, setCreatingGroup] = useState(false);
+
   const [groupImage, setGroupImage] =
     useState(null);
 
   const handleGroupCreate = async () => {
-    try {
-      // Validation
-      if (!groupName.trim()) {
-        alert("Please enter group name");
-        return;
-      }
+  if(!groupName.trim()) {
+     setGroupNameError("Please Enter Group name...")
+     return 
+  }
 
-      if (selectedUsers.length === 0) {
-        alert("Please select users");
-        return;
-      }
+  setGroupNameError("");
 
-      const formData = new FormData();
+  if (selectedUsers.length === 0) {
+    toast.error("Please select users");
+    return;
+  }
 
-      formData.append(
-        "groupName",
-        groupName
-      );
+  setCreatingGroup(true);
 
-      console.log(groupName);
-      
+  try {
+    const formData = new FormData();
 
-      if (groupImage) {
-        formData.append(
-          "groupImage",
-          groupImage
-        );
-      }
-                                            
-      formData.append(
-        "userIds",
-        JSON.stringify(userIds)
-      );
-  
-      const response = await axios.post(
-        "http://localhost:5000/api/v1/chat/group",
-        formData,
-        { 
-          withCredentials: true, 
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
-        }
-      );
+    formData.append("groupName", groupName);
 
-       console.log("GROUP RESPONSE:", response.data);
-
-      dispatch(
-        addChat(response.data.groupChat)
-      )
-
-     
-     
-      toast.success("New Group Created...")
-
-      // Later:
-      navigate(`/`);
-
-    } catch (error) {
-      console.error(
-        error.response?.data ||
-          error.message
-      );
+    if (groupImage) {
+      formData.append("groupImage", groupImage);
     }
-  };
 
-  
+    formData.append(
+      "userIds",
+      JSON.stringify(userIds)
+    );
+
+    const response = await axios.post(
+      `${API_URL}/api/v1/chat/group`,
+      formData,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    dispatch(addChat(response.data.groupChat));
+    toast.success("New Group Created...");
+
+    navigate("/");
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to create group"
+    );
+  } finally {
+    setCreatingGroup(false);
+  }
+};
 
   const userIds = selectedUsers.map(
     (user) => user._id
   )
-
-
-
-  // return (
-  //   <div className="p-5">
-  //     <h2 className="mb-4 text-2xl font-bold">
-  //       Create Group
-  //     </h2>
-
-  //     <input
-  //       type="text"
-  //       placeholder="Group Name"
-  //       value={groupName}
-  //       onChange={(e) =>
-  //         setGroupName(e.target.value)
-  //       }
-  //       className="mb-4 w-full rounded border p-2"
-  //     />
-
-  //     <input
-  //       type="file"
-  //       onChange={(e) =>
-  //         setGroupImage(
-  //           e.target.files[0]
-  //         )
-  //       }                          
-  //       className="mb-4"
-  //     />
-
-  //     <div className="mb-4">
-  //       <p className="font-semibold">
-  //         Selected Users:{" "}
-  //         {selectedUsers.length}
-  //       </p>
-                                       
-  //       {selectedUsers.length > 0 &&
-  //         selectedUsers.map((user) => (
-  //           <div className="" key={user._id}>
-  //                <img src={user.avatar?.url || "https://www.w3schools.com/w3images/avatar2.png"} alt={user.name} className="h-10 w-10 rounded-full object-cover" />
-  //                <p className="">{user.name}</p>
-  //           </div>
-  //         ))}
-  //     </div>
-
-  //     <button
-  //       onClick={handleGroupCreate}
-  //       className="rounded bg-blue-500 px-4 py-2 text-white"
-  //     >
-  //       Create Group
-  //     </button>
-  //   </div>
-  // );
-
 
   return (
   <section className="min-h-screen bg-[#EFEAE2] px-3 py-4">
@@ -259,7 +101,7 @@ const CreateGroupDetails = () => {
       </div>
 
       <div className="p-5">
-        {/* Group Image */}
+
         <div className="mb-6 flex flex-col items-center">
           <label className="relative cursor-pointer">
             <img
@@ -272,28 +114,29 @@ const CreateGroupDetails = () => {
               className="h-24 w-24 rounded-full border-2 border-white object-cover shadow-md"
             />
 
-            <div
-              className="
-                absolute bottom-0 right-0
-                flex h-8 w-8 items-center justify-center
-                rounded-full
-                bg-gradient-to-r
-                from-slate-900
-                via-blue-600
-                to-indigo-600
-                text-white shadow-md
-              "
-            >
-              📷
-            </div>
+          <label
+             className="
+               absolute bottom-0 right-0
+               flex h-8 w-8 cursor-pointer
+               items-center justify-center
+               rounded-full
+               bg-gradient-to-r
+               from-slate-900
+               via-blue-600
+               to-indigo-600
+               text-white
+               shadow-md
+             "
+           >
+         <FiCamera className="text-sm" />
 
-            <input
-              type="file"
-              className="hidden"
-              onChange={(e) =>
-                setGroupImage(e.target.files[0])
-              }
-            />
+         <input
+           type="file"
+          accept="image/*"
+          className="hidden"
+         onChange={(e) => setGroupImage(e.target.files[0])}
+         />
+       </label>    
           </label>
 
           <p className="mt-3 text-xs text-slate-500">
@@ -301,33 +144,46 @@ const CreateGroupDetails = () => {
           </p>
         </div>
 
-        {/* Group Name */}
         <div className="mb-6">
           <label className="mb-2 block text-xs font-medium text-slate-600">
             Group Name
           </label>
 
-          <input
-            type="text"
-            placeholder="Enter group name"
-            value={groupName}
-            onChange={(e) =>
-              setGroupName(e.target.value)
-            }
-            className="
-              w-full rounded-xl
-              border border-slate-200
-              bg-slate-50
-              px-4 py-3
-              text-sm
-              outline-none
-              focus:border-blue-400
-              focus:bg-white
-            "
-          />
-        </div>
+        <>
+  <input
+    type="text"
+    placeholder="Enter group name"
+    value={groupName}
+    onChange={(e) => {
+      setGroupName(e.target.value);
 
-        {/* Selected Users */}
+      if (groupNameError) {
+        setGroupNameError("");
+      }
+    }}
+    className={`
+      w-full rounded-xl
+      bg-slate-50
+      px-4 py-3
+      text-sm
+      outline-none
+      focus:bg-white
+      ${
+        groupNameError
+          ? "border border-red-500 focus:border-red-500"
+          : "border border-slate-200 focus:border-blue-400"
+      }
+    `}
+  />
+
+  {groupNameError && (
+    <p className="mt-1 text-xs text-red-500">
+      {groupNameError}
+    </p>
+  )}
+</>
+        </div>
+        
         <div className="mb-6">
           <p className="mb-3 text-sm font-semibold text-slate-700">
             Participants ({selectedUsers.length})
@@ -360,26 +216,37 @@ const CreateGroupDetails = () => {
           </div>
         </div>
 
-        {/* Create Button */}
-        <button
-          onClick={handleGroupCreate}
-          className="
-            w-full cursor-pointer rounded-xl
-            bg-gradient-to-r
-            from-slate-900
-            via-blue-600
-            to-indigo-600
-            py-3 text-sm font-semibold text-white
-            transition hover:opacity-90
-          "
-        >
-          Create Group
-        </button>
+  <button
+  onClick={handleGroupCreate}
+  disabled={creatingGroup}
+  className="
+    w-full rounded-xl
+    bg-gradient-to-r
+    from-slate-900
+    via-blue-600
+    to-indigo-600
+    py-3
+    text-sm
+    font-semibold
+    text-white
+    transition
+    hover:opacity-90
+    disabled:cursor-not-allowed
+    disabled:opacity-70
+  "
+>
+  {creatingGroup ? (
+    <div className="flex items-center justify-center gap-2">
+       <Spinner />
+    </div>
+  ) : (
+    "Create Group"
+  )}
+</button>
       </div>
     </div>
   </section>
 );  
-
 
 };
 

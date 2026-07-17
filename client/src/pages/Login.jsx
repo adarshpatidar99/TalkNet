@@ -1,25 +1,21 @@
-// React
 import React, { useState } from "react";
 
-// Libraries
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-// Firebase
 import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../firebase";
 
-// Redux
 import { setUser } from "../features/user/userSlice";
 
-// Icons
 import { FcGoogle } from "react-icons/fc";
 import { FaUser } from "react-icons/fa";
 
-// Assets
 import logo from "../assets/TalkNet2.png";
+
+import Spinner from "../components/Spinner";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -148,11 +144,11 @@ const Login = () => {
 
           <button
             type="submit"
-            disabled={loading || googleLoading}
-            className="w-full py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-violet-600 via-indigo-500 to-sky-400 hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+           disabled={loading || googleLoading}
+           className="w-full h-10 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-violet-600 via-indigo-500 to-sky-400 hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            {loading ? "Logging in..." : "Login"}
-          </button>
+            {loading ? <Spinner /> : "Login"}
+         </button>
 
           <button
             type="button"

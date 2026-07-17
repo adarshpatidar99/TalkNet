@@ -5,9 +5,6 @@ const initialState = {
    loading: false
 };
 
-
-
-
 const chatSlice = createSlice({
   name: "chat",
   initialState,
@@ -22,9 +19,6 @@ const chatSlice = createSlice({
          state.chats = [];
       }
 
-        console.log("Entire state:", state);
-  console.log("state.chats:", state.chats);
-  console.log("Adding chat:", action.payload);
       state.chats.unshift(action.payload);
     },
   },
@@ -32,5 +26,14 @@ const chatSlice = createSlice({
 
 export const { setChats, addChat } = chatSlice.actions;
                 
-// ✅ FIX HERE
 export default chatSlice.reducer;
+
+
+
+
+
+
+
+
+
+

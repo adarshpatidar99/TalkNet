@@ -38,7 +38,7 @@ import { createSlice } from "@reduxjs/toolkit";
   },
 })
 
-// Action creators are generated for each case reducer function
 export const { setSocket, setOnlineUsers , userTyping, stopUserTyping, clearSocketState } = socketSlice.actions
 
 export default socketSlice.reducer; 
+

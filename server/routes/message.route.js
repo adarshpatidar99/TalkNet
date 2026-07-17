@@ -1,21 +1,27 @@
-import express from 'express';
-import { deleteMessage, getGroupMessage, getMessage, imageUpload, messageSave, sendMessage, updatedMessageStatus, updateMessage, videoMessageSave, videoUpload, voiceUpload } from '../controllers/message.controller.js';
-import { isAuth } from '../middlewares/auth.middleware.js';
-                                                              
-const router = express.Router();
+import express from "express";
+import {
+  getGroupMessage,
+  getMessage,
+  imageUpload,
+  messageSave,
+  sendMessage,
+  videoUpload,
+  voiceUpload,
+} from "../controllers/message.controller.js";
 
-router.post('/send', sendMessage);
-router.get('/getall/:senderId/:receiverId', isAuth, getMessage);
+import { isAuth } from "../middlewares/auth.middleware.js";
 
-router.get('/group/getall/:chatId', isAuth, getGroupMessage);            
+const router = express.Router();  
 
-router.put('/updatestatus/:messageId', updatedMessageStatus);
-router.get('/delete/:messageId', deleteMessage);
-router.put('/update/:messageId', updateMessage);
-router.post('/voice', voiceUpload);                            
-router.post('/save', messageSave);                              
-router.post('/video', videoUpload );
-router.post('/savevideo', videoMessageSave);
-router.post('/image', imageUpload);
-                                                               
-export default router;               
+router.post("/send", isAuth, sendMessage);
+router.get("/private/:senderId/:receiverId", isAuth, getMessage);
+router.get("/group/:chatId", isAuth, getGroupMessage);
+
+// Media Upload APIs
+router.post("/upload/image", isAuth, imageUpload);
+router.post("/upload/video", isAuth, videoUpload);
+router.post("/upload/voice", isAuth, voiceUpload);
+
+router.post("/save", isAuth, messageSave);
+
+export default router;

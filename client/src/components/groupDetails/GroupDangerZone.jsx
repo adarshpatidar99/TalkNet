@@ -10,7 +10,6 @@ const GroupDangerZone = ({
   return (
     <div className="w-full">
 
-      {/* Card Container */}
       <div className="space-y-3">
 
         {/* Leave Group Card */}

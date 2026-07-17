@@ -1,203 +1,3 @@
-// import User from "../models/user.model.js";
-// import Message from "../models/message.model.js";
-// import Chat from '../models/chat.model.js';
-
-// const onlineUsers = new Map();
-
-// export default function socketHandler(io) {
-//   io.on("connection", (socket) => {
-//     console.log("⚡ User connected:", socket.id);
-
-//     socket.on("joinChat", async (chatId) => {
-//          socket.join(chatId);
-//     });
-                          
-
-//     // ================= USER ONLINE =================
-//     socket.on("userOnline", async (userId) => {
-//       onlineUsers.set(String(userId), socket.id);
-//       await User.findByIdAndUpdate(userId, { isOnline: true }).catch(() => {});
-
-//       const chats = await Chat.find({
-//         participants: userId,
-//         isGroupChat: true
-//       })
-
-//       chats.forEach((chat) => {
-//           socket.join(chat._id.toString());
-//       })
-
-//       io.emit("updateOnlineUsers", Array.from(onlineUsers.keys()));
-//     });
-
-
-
-//     // ================= TYPING =================
-//     socket.on("typing", ({ fromUserId, toUserId }) => {
-//       const s = onlineUsers.get(String(toUserId));
-//       if (s) io.to(s).emit("userTyping", { fromUserId });
-//     });
-
-//     socket.on("stop-typing", ({ fromUserId, toUserId }) => {
-//       const s = onlineUsers.get(String(toUserId));
-//       if (s) io.to(s).emit("stop-userTyping", { fromUserId });
-//     });
-
-    
-
-//     socket.on("group-typing", async ({chatId, fromUserId}) => {
-
-//        socket.to(chatId).emit("group-userTyping", {
-//             fromUserId,
-//             chatId       
-//        })
-
-//     })
-
-
-//     socket.on("group-stop-typing", ({chatId, fromUserId}) => {
-
-//        socket.to(chatId).emit("group-stop-userTyping", {
-//           fromUserId, 
-//           chatId
-//        })
-
-//     })
-
-
-//     // ================= SEND MESSAGE =================
-//     socket.on("sendMessage", async (msg) => {
-//       const receiverSocket = onlineUsers.get(String(msg.receiverId));
-
-//       if (receiverSocket) {
-//         await Message.findByIdAndUpdate(msg._id, { status: "delivered" });
-
-//         io.to(receiverSocket).emit("receiveMessage", {
-//           ...msg,
-//           status: "delivered",
-//         });
-
-//         io.to(socket.id).emit("messageStatusUpdated", {
-//           messageId: msg._id,
-//           status: "delivered",
-//         });
-//       } else {
-//         io.to(socket.id).emit("messageStatusUpdated", {
-//           messageId: msg._id,
-//           status: "sent",
-//         });
-//       }
-//     });
-
-    
-//     socket.on("leaveChat", (chatId) => {
-//        socket.leave(chatId);
-//     })
-   
-
-//     socket.on("sendGroupMessage", async (msg) => {
-//        io.to(msg.chatId).emit("receiveGroupMessage", msg);
-
-//       const chat = await Chat.findById(msg._id);
-
-//       if(!chat) {
-//          return;
-//       }
-
-//       const isMember = chat.participants.include(msg.senderId);
-
-//       if(!isMember) {
-//          return;
-//       }
-
-//       const fullName = await Message.findById(msg._id)
-//       .populate("senderId", "name profilePic")
-//       .populate("chatId");
-
-//       io.to(msg.chatId).emit(
-//         "receiveGroupMessage",
-//         fullName
-//       )
-
-//     })
-
-//     socket.on("group-message-seen", async({messageId, userId}) => {
-
-//           await Message.findByIdAndUpdate(messageId, 
-//             { 
-//               $addToSet: {
-//                  seenBy: userId
-//               }
-//              })       
-//     })
-
-
-//     socket.on("deleteGroupMessage", async({messageId, chatId}) => {
-       
-//         await Message.findByIdAndDelete(messageId);
-
-//         io.to(chatId).socket.emit("groupMessageDeleted", {
-//            messageId
-//         });
-        
-
-//     })
-
-
-//     // ================= MESSAGE SEEN =================
-//     socket.on("message-seen", async ({ messageIds, senderId }) => {
-//       await Message.updateMany(
-//         { _id: { $in: messageIds } },
-//         { status: "seen" }
-//       );
-
-//       const senderSocket = onlineUsers.get(String(senderId));
-//       if (senderSocket) {
-//         io.to(senderSocket).emit("messageStatusUpdated", {
-//           messageIds,
-//           status: "seen",
-//         });
-//       }
-//     });
-
-//     // ================= DELETE =================
-//     socket.on("deleteMessage", async ({ messageId, receiverId }) => {
-//       await Message.findByIdAndDelete(messageId);
-
-//       io.to(socket.id).emit("messageDeleted", { messageId });
-
-//       const rs = onlineUsers.get(String(receiverId));
-//       if (rs) io.to(rs).emit("messageDeleted", { messageId });
-//     });
-
-   
-
-
-
-//     // ================= DISCONNECT =================
-//     socket.on("disconnect", async () => {
-      
-
-//       for (const [uid, sid] of onlineUsers.entries()) {
-//         if (sid === socket.id) {
-//           onlineUsers.delete(uid);
-//           await User.findByIdAndUpdate(uid, { 
-//             isOnline: false,
-//             lastSeen: new Date()
-//           }).catch(() => {}); 
-//         }
-//       }
-
-//       io.emit("updateOnlineUsers", Array.from(onlineUsers.keys()));
-//     });
-//   });
-// }
-
-
-
-
-
-
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import Chat from "../models/chat.model.js";
@@ -206,44 +6,78 @@ const onlineUsers = new Map();
 
 export default function socketHandler(io) {
   io.on("connection", (socket) => {
-    console.log("⚡ User connected:", socket.id);
 
     // ================= JOIN CHAT ROOM =================
     socket.on("joinChat", async (chatId) => {
       socket.join(chatId);
-
-      console.log("joined  Room:", chatId);
-      
-
-    });
-
+    });                                
+                              
     // ================= LEAVE CHAT ROOM =================
     socket.on("leaveChat", (chatId) => {
       socket.leave(chatId);
+    });         
+  
+    // ================= USER ONLINE ================= 
+    socket.on("userOnline", async (userId) => {
+  try {                           
+    onlineUsers.set(String(userId), socket.id);
+
+    await User.findByIdAndUpdate(userId, {
+      isOnline: true,
+    });                    
+
+    // Get all groups of this user
+    const chats = await Chat.find({
+      participants: userId,
+      isGroupChat: true,
     });
 
-    // ================= USER ONLINE =================
-    socket.on("userOnline", async (userId) => {
-      onlineUsers.set(String(userId), socket.id);
+    for (const chat of chats) {
 
-      await User.findByIdAndUpdate(userId, {
-        isOnline: true,
-      }).catch(() => {});
+      // Join socket room
+      socket.join(chat._id.toString());
 
-      // Auto join all group chats
-      const chats = await Chat.find({
-        participants: userId,
-        isGroupChat: true,
+      // Find all messages that this user has NOT received yet
+      const messages = await Message.find({
+        chatId: chat._id,
+        senderId: { $ne: userId },          // don't deliver own messages
+        deliveredTo: { $ne: userId },       // not delivered yet
       });
 
-      chats.forEach((chat) => {
-        socket.join(chat._id.toString());
-      });
+      for (const message of messages) {
 
-      io.emit(
-        "updateOnlineUsers",
-        Array.from(onlineUsers.keys())
-      );
+        // Add current user to deliveredTo
+        message.deliveredTo.addToSet(userId);
+
+        const totalReceivers = chat.participants.length - 1;
+
+        // Everyone received?
+        if (message.deliveredTo.length >= totalReceivers) {
+          message.status = "delivered";
+        }
+
+        await message.save();
+
+        // Notify everyone in group
+        io.to(chat._id.toString()).emit(
+          "group-message-delivered-update",
+          {
+            messageId: message._id,
+            deliveredTo: message.deliveredTo,
+            status: message.status,
+          }
+        );
+      }
+    }
+
+    io.emit(
+      "updateOnlineUsers",
+      Array.from(onlineUsers.keys())
+    );
+
+  } catch (error) {
+    console.log("userOnline error:", error);
+  }
     });
 
     // ================= PRIVATE TYPING =================
@@ -295,9 +129,9 @@ export default function socketHandler(io) {
             userName
           }
         );
-      }
+      }    
     );
-
+   
     socket.on(
       "group-stop-typing", 
       ({ chatId, fromUserId, userName }) => {
@@ -310,148 +144,63 @@ export default function socketHandler(io) {
           }
         );
       }
-    );
+    );          
 
     // ================= PRIVATE MESSAGE =================
-    socket.on("sendMessage", async (msg) => {
-      const receiverSocket = onlineUsers.get(
-        String(msg.receiverId)
+     socket.on("sendMessage", async (msg) => {
+  try {
+    const receiverSocket = onlineUsers.get(
+      String(msg.receiverId)
+    );
+
+    if (receiverSocket) {
+      await Message.findByIdAndUpdate(
+        msg._id,
+        {
+          status: "delivered",
+        }
       );
 
-      if (receiverSocket) {
-        await Message.findByIdAndUpdate(
-          msg._id,
-          {
-            status: "delivered",
-          }
-        );
+      io.to(receiverSocket).emit(
+        "receiveMessage",
+        {
+          ...msg,
+          status: "delivered",
+        }
+      );
 
-        io.to(receiverSocket).emit(
-          "receiveMessage",
-          {
-            ...msg,
-            status: "delivered",
-          }
-        );
-
-        io.to(socket.id).emit(
-          "messageStatusUpdated",
-          {
-            messageId: msg._id,
-            status: "delivered",
-          }
-        );
-      } else {
-        io.to(socket.id).emit(
-          "messageStatusUpdated",
-          {
-            messageId: msg._id,
-            status: "sent",
-          }
-        );
-      }
-    });
-
-    // ================= GROUP MESSAGE =================
-    socket.on("sendGroupMessage", async (msg) => {
-  try {
-
-    // 1. Find group
-    const chat = await Chat.findById(msg.chatId);
-
-    if (!chat) {
-      return;
+      io.to(socket.id).emit(
+        "messageStatusUpdated",
+        {
+          messageId: msg._id,
+          status: "delivered",
+        }
+      );
+    } else {
+      io.to(socket.id).emit(
+        "messageStatusUpdated",
+        {
+          messageId: msg._id,
+          status: "sent",
+        }
+      );
     }
-
-    // 2. Check sender is member
-    const isMember = chat.participants.some(
-      (p) => p.toString() === msg.senderId
-    );
-
-    if (!isMember) {
-      return;
-    }
-
-    // 3. Save message
-    const fullMessage = await Message.create({
-      chatId: msg.chatId,
-      senderId: msg.senderId,
-      text: msg.text,
-      type: msg.type,
-      imageUrl: msg.imageUrl || "",
-      audioUrl: msg.audioUrl || "",
-      videoUrl: msg.videoUrl || "",
-    });
-
-    // 4. Populate sender details
-    const populatedMessage = await Message.findById(fullMessage._id)
-      .populate("senderId", "name profilePic");
-
-    // 5. Update latest message
-    await Chat.findByIdAndUpdate(msg.chatId, {
-      latestMessage: fullMessage._id,
-    });
-
-    // 6. Emit to group room
-    io.to(msg.chatId).emit(
-      "receiveGroupMessage",
-      populatedMessage
-    );
-
   } catch (error) {
-    console.log("Group message error:", error);
+    console.log("Send Message Error:", error);
+
+    io.to(socket.id).emit(
+      "messageStatusUpdated",
+      {
+        messageId: msg._id,
+        status: "failed",
+      }
+    );
   }
-});
-
-    // ================= GROUP MESSAGE SEEN =================
-    socket.on(
-      "group-message-seen",
-      async ({ messageId, userId }) => {
-        try {
-          await Message.findByIdAndUpdate(
-            messageId,
-            {
-              $addToSet: {
-                seenBy: userId,
-              },
-            }
-          );
-        } catch (error) {
-          console.log(
-            "Group Seen Error:",
-            error
-          );
-        }
-      }
-    );
-
-    // ================= DELETE GROUP MESSAGE =================
-    socket.on(
-      "deleteGroupMessage",
-      async ({ messageId, chatId }) => {
-        try {
-          await Message.findByIdAndDelete(
-            messageId
-          );
-
-          io.to(chatId).emit(
-            "groupMessageDeleted",
-            {
-              messageId,
-            }
-          );
-        } catch (error) {
-          console.log(
-            "Delete Group Message Error:",
-            error
-          );
-        }
-      }
-    );
-
-    // ================= PRIVATE MESSAGE SEEN =================
+     });
+     
+      // ================= PRIVATE MESSAGE SEEN =================
     socket.on(   
-      "message-seen",
+      "message-seen",              
       async ({ messageIds, senderId }) => {
         await Message.updateMany(
           {
@@ -479,35 +228,98 @@ export default function socketHandler(io) {
       }
     );
 
-    // ================= DELETE PRIVATE MESSAGE =================
-    socket.on(
-      "deleteMessage",
-      async ({ messageId, receiverId }) => {
-        await Message.findByIdAndDelete(
-          messageId
-        );
+     socket.on("group-message-delivered", async ({ messageId, userId }) => {
+  try {
 
-        io.to(socket.id).emit(
-          "messageDeleted",
+    // Add user to deliveredTo
+    await Message.findByIdAndUpdate(
+      messageId,
+      {
+        $addToSet: {
+          deliveredTo: userId,
+        },
+      }
+    );
+
+    let message = await Message.findById(messageId);
+
+    const chat = await Chat.findById(message.chatId);
+
+    const totalReceivers = chat.participants.length - 1;
+
+    if (message.deliveredTo.length >= totalReceivers) {
+
+      await Message.findByIdAndUpdate(
+        messageId,
+        {
+          status: "delivered",
+        }
+      );
+
+      message = await Message.findById(messageId);
+
+      io.to(chat._id.toString()).emit(
+        "group-message-delivered-update",
+        {
+          messageId,
+          status: message.status,
+        }
+      );
+    }
+
+  } catch (error) {
+    console.log("Group Delivered Error:", error);
+  }
+     });
+
+    // ================= GROUP MESSAGE SEEN =================
+    socket.on(
+  "group-message-seen",
+  async ({ messageId, userId }) => {
+    try {
+
+      // Add user to seenBy
+      await Message.findByIdAndUpdate(
+        messageId,
+        {
+          $addToSet: {
+            seenBy: userId,
+          },
+        }
+      );
+
+      let updatedMessage = await Message.findById(messageId);
+
+      const chat = await Chat.findById(updatedMessage.chatId);
+
+      const totalReceivers = chat.participants.length - 1;
+
+      // Everyone except sender has seen the message
+      if (updatedMessage.seenBy.length >= totalReceivers) {
+
+        await Message.findByIdAndUpdate(
+          messageId,
           {
-            messageId,
+            status: "seen",
           }
         );
 
-        const receiverSocket =
-          onlineUsers.get(
-            String(receiverId)
-          );
-
-        if (receiverSocket) {
-          io.to(receiverSocket).emit(
-            "messageDeleted",
-            {
-              messageId,
-            }
-          );
-        }
+        updatedMessage = await Message.findById(messageId);
       }
+
+      io.to(updatedMessage.chatId.toString()).emit(
+        "group-message-seen-update",
+        {
+          messageId,
+          seenBy: updatedMessage.seenBy,
+          status: updatedMessage.status,
+        }
+      );
+
+    } catch (error) {
+      console.log("Group Seen Error:", error);
+    }
+  }
     );
 
     // ================= DISCONNECT =================
@@ -534,10 +346,6 @@ export default function socketHandler(io) {
         Array.from(onlineUsers.keys())
       );
 
-      console.log(
-        "❌ User disconnected:",
-        socket.id
-      );
     });
   });
 }

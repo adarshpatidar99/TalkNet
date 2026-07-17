@@ -39,7 +39,16 @@ import { createSlice } from "@reduxjs/toolkit";
   },
 })
 
-// Action creators are generated for each case reducer function
 export const { setMessage, setLoading, addMessage, setError, clearMessages } = messageSlice.actions
 
 export default messageSlice.reducer; 
+
+
+
+
+
+
+
+
+
+

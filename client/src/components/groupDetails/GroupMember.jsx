@@ -1,153 +1,23 @@
-// import React, { useState } from "react";
-// import axios from "axios";
-// import AddMemberModal from "./AddMemberModal";
-
-// const GroupMember = ({ group, setGroup, isAdmin }) => {
-//   const [loading, setLoading] = useState(false);
-//   const [openAddModal, setOpenAddModal] = useState(false);
-
-
-//   console.log("GroupMember isAdmin:", isAdmin);
-
-//   const handleRemoveMember = async (memberId) => {
-//     try {
-//       setLoading(true);
-
-//       const res = await axios.put(
-//         "http://localhost:5000/api/v1/chat/group/remove",
-//         {
-//           chatId: group._id,
-//           userId: memberId,
-//         },
-//         {
-//           withCredentials: true,
-//         }
-//       );
-
-//       setGroup(res.data.group);
-//     } catch (error) {
-//       console.log(error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="bg-white rounded-xl shadow p-5 mt-5">
-
-//       {/* Header */}
-//       <div className="flex items-center justify-between mb-5">
-//         <h3 className="text-lg font-semibold">
-//           Group Members ({group?.participants?.length || 0})
-//         </h3>
-
-//         {isAdmin && (
-//           <button
-//             onClick={() => setOpenAddModal(true)}
-//             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-//           >
-//             + Add
-//           </button>
-//         )}
-//       </div>
-
-//       {/* Members */}
-//       <div className="space-y-3">
-
-//         {group?.participants?.map((member) => (
-//           <div
-//             key={member._id}
-//             className="flex items-center justify-between p-3 rounded-lg border hover:bg-slate-50 transition"
-//           >
-
-//             {/* Left */}
-//             <div className="flex items-center gap-3">
-
-//               <img
-//                 src={
-//                   member?.avatar?.url ||
-//                   "https://i.pravatar.cc/150"
-//                 }
-//                 alt={member.name}
-//                 className="w-11 h-11 rounded-full object-cover"
-//               />
-
-//               <div>
-//                 <div className="flex items-center gap-2">
-
-//                   <p className="font-medium">
-//                     {member.name}
-//                   </p>
-
-//                   {group?.groupAdmin?._id === member._id && (
-//                     <span className="text-xs bg-yellow-400 px-2 py-1 rounded-full">
-//                       Admin 
-//                     </span>
-//                   )}
-
-//                 </div>
-
-//                 <p className="text-sm text-gray-500">
-//                   {member.email}
-//                 </p>
-//               </div>
-
-//             </div>
-
-//             {/* Right */}
-//             {isAdmin &&
-//               group?.groupAdmin?._id !== member._id && (
-//                 <button
-//                   disabled={loading}
-//                   onClick={() =>
-//                     handleRemoveMember(member._id)
-//                   }
-//                   className="text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
-//                 >
-//                   {loading ? "Removing..." : "Remove"}
-//                 </button>
-//               )}
-
-//           </div>
-//         ))}
-
-//       </div>
-
-//       {/* Add Member Modal */}
-//       {openAddModal && (
-//         <AddMemberModal
-//           group={group}
-//           setGroup={setGroup}
-//           open={openAddModal}
-//           onClose={() => setOpenAddModal(false)}
-//         />
-//       )}
-
-//     </div>
-//   );
-// };
-
-// export default GroupMember;
-
-
-
-
-
 import React, { useState } from "react";
 import axios from "axios";
 import AddMemberModal from "./AddMemberModal";
 import { FiUserPlus, FiUserMinus } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const GroupMember = ({ group, setGroup, isAdmin }) => {
   const [loading, setLoading] = useState(false);
   const [openAddModal, setOpenAddModal] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleRemoveMember = async (memberId) => {
     try {
       setLoading(true);
 
       const res = await axios.put(
-        "http://localhost:5000/api/v1/chat/group/remove",
+        `${API_URL}/api/v1/chat/group/remove`,
         {
           chatId: group._id,
           userId: memberId,
@@ -156,11 +26,6 @@ const GroupMember = ({ group, setGroup, isAdmin }) => {
           withCredentials: true,
         }
       );
-      // console.log(res.data);
-
-      // setGroup(res.data.group);
-
-      console.log("See Data...", res.data.chat);
 
 if (res.data.chat) {
   setGroup(res.data.chat);
@@ -172,6 +37,10 @@ if (res.data.chat) {
       setLoading(false);
     }
   };
+
+  const openProfileDetails = (memberId) => {
+    navigate(`/user-profile/${memberId}`)
+  }
 
   return (
     <div className="bg-white rounded-xl">
@@ -211,18 +80,19 @@ if (res.data.chat) {
       </div>
 
       {/* Members */}
-      <div className="space-y-3">
+      <div className="space-y-3 max-h-[500px] overflow-y-auto">
 
         {group?.participants?.map((member) => (
           <div
-            // key={member._id}
+             onClick={() => openProfileDetails(member._id)}
              key={member._id || member.email}
-            className="
+            className="                  
               flex
               items-center
               justify-between
               p-3
-              rounded-xl                                     
+              rounded-xl      
+              cursor-pointer                               
               border
               border-slate-200
               hover:bg-slate-50
@@ -236,7 +106,7 @@ if (res.data.chat) {
               <img
                 src={
                   member?.avatar?.url ||
-                  "https://i.pravatar.cc/150"
+                  "https://www.w3schools.com/w3images/avatar2.png"
                 }
                 alt={member.name}
                 className="w-11 h-11 rounded-full object-cover"
@@ -266,10 +136,6 @@ if (res.data.chat) {
                   )}
 
                 </div>
-
-                <p className="text-sm text-slate-500">
-                  {member.email}
-                </p>
 
               </div>
 

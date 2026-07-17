@@ -3,37 +3,28 @@ import mongoose from "mongoose";
 const messageSchema = new mongoose.Schema(
   {
     senderId: {
-      type: mongoose.Schema.Types.ObjectId, // ✅ IMPORTANT
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
     chatId: {
-      
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Chat",      
-    },
-
-    seenBy: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: []  
-      }
-    ],
-
-    replyTo: { 
-       type: mongoose.Schema.Types.ObjectId,
-       ref: "Message", 
-       default: null  
+      ref: "Chat",
     },
 
     receiverId: {
-      type: mongoose.Schema.Types.ObjectId, // ✅ IMPORTANT
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      default: null
+      default: null,
     },
-                                                              
+
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+      default: null,
+    },
+
     text: {
       type: String,
       trim: true,
@@ -60,26 +51,28 @@ const messageSchema = new mongoose.Schema(
       default: "",
     },
 
-    reactions: [
-       {
-         userId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-         },
-         emoji: {
-          type: String
-         },
-       }, 
+    seenBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    deliveredTo: [
+      {
+         type: mongoose.Schema.Types.ObjectId,
+         ref: "User",
+      } 
     ],
 
     status: {
       type: String,
       enum: ["sent", "delivered", "seen"],
-      default: "sent", // sent
+      default: "sent",
     },
-  },                            
+  },
   {
-    timestamps: true, // ✅ replaces createdAt
+    timestamps: true,
   }
 );
 

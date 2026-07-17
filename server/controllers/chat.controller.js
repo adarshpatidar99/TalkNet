@@ -32,7 +32,6 @@ export const accessChat = catchAsyncError(async (req, res, next) => {
   return res.status(200).json({ success: true, chat });
 });
 
- 
 
 export const fetchChats = catchAsyncError(async (req, res, next) => {
   const chats = await Chat.find({
@@ -56,124 +55,6 @@ export const fetchChats = catchAsyncError(async (req, res, next) => {
 });
 
 
-// Create group chat
-// export const createGroupChat = catchAsyncError(async (req, res, next) => {
-//   const { groupName, userIds, groupImage } = req.body;
-
-//   if (!name || !Array.isArray(userIds) || userIds.length < 2)
-//     return next(
-//       new ErrorHandler("Group name & at least 2 users required", 400)
-//     );
-
-//     const participants = [
-//      ...new Set([
-//      ...userIds.map((id) => id.toString()),
-//     req.user._id.toString(),
-//     ]),
-//     ];
-               
-//   const groupChat = await Chat.create({
-//     chatName: name,
-//     groupImage,
-//     isGroupChat: true,
-//     participants,
-//     groupAdmin: req.user._id,
-//   });                                
-
-//   const fullGroupChat = await Chat.findById(groupChat._id)
-//     .populate("participants", "-password")
-//     .populate("groupAdmin", "-password");
-
-//   const io = req.app.get("io");
-//   userIds.forEach((uid) =>
-//     io.to(uid.toString()).emit("newGroupChat", fullGroupChat)
-//   );
-
-//   return res
-//     .status(201)
-//     .json({ success: true, groupChat: fullGroupChat });
-// });
-
-
-
-
-// // Create group chat
-// export const createGroupChat = catchAsyncError(
-//   async (req, res, next) => {
-//     let { groupName, userIds, groupImage } =
-//       req.body;
-
-//     // Because multipart/form-data sends arrays as strings
-//     if (typeof userIds === "string") {
-//       userIds = JSON.parse(userIds);
-//     }
-
-//     // Validation
-//     if (
-//       !groupName ||
-//       !Array.isArray(userIds) ||
-//       userIds.length < 2
-//     ) {
-//       return next(
-//         new ErrorHandler(
-//           "Group name & at least 2 users required",
-//           400
-//         )
-//       );
-//     }
-
-//     // Add current user and remove duplicates
-//     const participants = [
-//       ...new Set([
-//         ...userIds.map((id) =>
-//           id.toString()
-//         ),
-//         req.user._id.toString(),
-//       ]),
-//     ];
-
-//     // Create group
-//     const groupChat = await Chat.create({
-//       chatName: groupName,
-//       groupImage: groupImage || "",
-//       isGroupChat: true,
-//       participants,
-//       groupAdmin: req.user._id,
-//     });
-
-//     // Populate data
-//     const fullGroupChat =
-//       await Chat.findById(groupChat._id)
-//         .populate(
-//           "participants",
-//           "-password"
-//         )
-//         .populate(
-//           "groupAdmin",
-//           "-password"
-//         );
-
-//     // Realtime notification
-//     const io = req.app.get("io");
-
-//     participants.forEach((uid) => {
-//       io.to(uid.toString()).emit(
-//         "newGroupChat",
-//         fullGroupChat
-//       );
-//     });
-
-//     return res.status(201).json({
-//       success: true,
-//       message:
-//         "Group created successfully",
-//       groupChat: fullGroupChat,
-//     });
-//   }
-// );
-
-
-// Create group chat
 export const createGroupChat = catchAsyncError(
   async (req, res, next) => {
     let { groupName, userIds } = req.body;
@@ -183,7 +64,6 @@ export const createGroupChat = catchAsyncError(
       userIds = JSON.parse(userIds);
     }
 
-    // Validation
     if (
       !groupName ||
       !Array.isArray(userIds) ||
@@ -204,10 +84,6 @@ export const createGroupChat = catchAsyncError(
         req.user._id.toString(),
       ]),
     ];
-
-    // =========================
-    // 🔥 CLOUDINARY UPLOAD
-    // =========================
     let groupImageUrl = "";
 
     if (req.files?.groupImage) {
@@ -225,9 +101,7 @@ export const createGroupChat = catchAsyncError(
       groupImageUrl = result.secure_url;
     }
 
-    // =========================
     // CREATE GROUP
-    // =========================
     const groupChat = await Chat.create({
       chatName: groupName,
       groupImage: groupImageUrl,
@@ -243,9 +117,7 @@ export const createGroupChat = catchAsyncError(
       .populate("participants", "-password")
       .populate("groupAdmin", "-password");
 
-    // =========================
     // REALTIME EVENT
-    // =========================
     const io = req.app.get("io");
 
     participants.forEach((uid) => {
@@ -264,13 +136,11 @@ export const createGroupChat = catchAsyncError(
 );
 
 
-
-export const updateGroupDescription = async(req, res) => {
+export const updateGroupDescription = async(req, res, next) => {
 
    const {chatId, description} = req.body;
 
    const group = await Chat.findById(chatId);
-   
    if(!group) {
     return next (new ErrorHandler("Group not found", 404));
    }
@@ -291,7 +161,6 @@ export const updateGroupDescription = async(req, res) => {
 } 
 
 
-// Add user to group
 export const addToGroup = catchAsyncError(async (req, res, next) => {
   const { chatId, userId } = req.body;
 
@@ -377,7 +246,6 @@ export const sendGroupMessage = catchAsyncError(
       videoUrl,
     } = req.body;
 
-    // Validate chatId
     if (!chatId) {
       return next(
         new ErrorHandler(
@@ -445,6 +313,7 @@ export const sendGroupMessage = catchAsyncError(
       chatId,
       text,
       type: type || "text",
+      status: "sent",
       imageUrl,
       audioUrl,
       videoUrl,
@@ -521,85 +390,7 @@ export const getGroupMessage = catchAsyncError  (async (req, res, next) => {
      });
  
 });
-
-                    
-
-export const deleteGroupMessage = catchAsyncError(
-  async (req, res, next) => {
-    const { messageId } = req.params;
-
-    if (!messageId) {
-      return next(
-        new ErrorHandler(
-          "MessageId is required",
-          400
-        )
-      );
-    }
-
-    const message = await Message.findById(
-      messageId
-    );
-
-    if (!message) {
-      return next(
-        new ErrorHandler(
-          "Message not found",
-          404
-        )
-      );
-    }
-
-    const chat = await Chat.findById(
-      message.chatId
-    );
-
-    if (!chat) {
-      return next(
-        new ErrorHandler(
-          "Group chat not found",
-          404
-        )
-      );
-    }
-
-    const isSender =
-      String(message.senderId) ===
-      String(req.user._id);
-
-    const isAdmin =
-      String(chat.groupAdmin) ===
-      String(req.user._id);
-
-    if (!isSender && !isAdmin) {
-      return next(
-        new ErrorHandler(
-          "You are not authorized to delete this message",
-          403
-        )
-      );
-    }
-
-    await Message.findByIdAndDelete(
-      messageId
-    );
-
-    const io = req.app.get("io");
-
-    io.to(chat._id.toString()).emit(
-      "groupMessageDeleted",
-      {
-        messageId,
-      }
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Message deleted successfully",
-    });
-  }
-);
-
+ 
 
 export const leaveGroup = catchAsyncError(
   async (req, res, next) => {
@@ -757,12 +548,10 @@ export const deleteGroup = catchAsyncError(async (req, res, next) => {
 });
 
 
-// Remove user from group
 export const removeFromGroup = catchAsyncError(
   async (req, res, next) => {
     const { chatId, userId } = req.body;
 
-    // Validate input  
     if (!chatId || !userId) {
       return next(
         new ErrorHandler(
@@ -860,7 +649,6 @@ export const getGroupDetails = catchAsyncError(
   async (req, res, next) => {
     const { chatId } = req.params;
 
-    // Validate chatId
     if (!chatId) {
       return next(
         new ErrorHandler(
@@ -870,7 +658,6 @@ export const getGroupDetails = catchAsyncError(
       );
     }
 
-    // Find group
     const chat = await Chat.findById(chatId)
       .populate(
         "participants",
@@ -924,117 +711,7 @@ export const getGroupDetails = catchAsyncError(
       createdAt: chat.createdAt,
     });
   }
-);
-
-
-export const transferGroupAdmin = catchAsyncError(
-  async (req, res, next) => {
-    const { chatId, newAdminId } = req.body;
-
-    // Validate input
-    if (!chatId || !newAdminId) {
-      return next(
-        new ErrorHandler(
-          "ChatId and newAdminId are required",
-          400
-        )
-      );
-    }
-
-    // Find group
-    const chat = await Chat.findById(chatId);
-
-    if (!chat) {
-      return next(
-        new ErrorHandler(
-          "Group not found",
-          404
-        )
-      );
-    }
-
-    // Ensure it is a group
-    if (!chat.isGroupChat) {
-      return next(
-        new ErrorHandler(
-          "Invalid group chat",
-          400
-        )
-      );
-    }
-
-    // Only current admin can transfer ownership
-    if (
-      String(chat.groupAdmin) !==
-      String(req.user._id)
-    ) {
-      return next(
-        new ErrorHandler(
-          "Only group admin can transfer admin rights",
-          403
-        )
-      );
-    }
-
-    // Prevent transferring to self
-    if (
-      String(chat.groupAdmin) ===
-      String(newAdminId)
-    ) {
-      return next(
-        new ErrorHandler(
-          "User is already the group admin",
-          400
-        )
-      );
-    }
-
-    // Verify new admin is a member
-    const isMember = chat.participants.some(
-      (participant) =>
-        participant.toString() ===
-        newAdminId.toString()
-    );
-
-    if (!isMember) {
-      return next(
-        new ErrorHandler(
-          "User is not a member of this group",
-          400
-        )
-      );
-    }
-
-    // Transfer ownership
-    chat.groupAdmin = newAdminId;
-
-    await chat.save();
-
-    const updatedChat = await Chat.findById(chatId)
-      .populate("participants", "-password")
-      .populate("groupAdmin", "-password");
-
-    // Socket notification
-    const io = req.app.get("io");
-
-    updatedChat.participants.forEach(
-      (participant) => {
-        io.to(participant._id.toString()).emit(
-          "groupAdminTransferred",
-          updatedChat
-        );
-      }
-    );
-
-    return res.status(200).json({
-      success: true,
-      message:
-        "Group admin transferred successfully",
-      chat: updatedChat,
-    });
-  }
-);                                                      
-
+);                                                   
 
 
 export const messageSeen = catchAsyncError(
@@ -1108,7 +785,6 @@ export const messageSeen = catchAsyncError(
     return next(new ErrorHandler("Sender cannot mark own message as seen", 400));
    }
   
-
     const alreadySeen =
       message.seenBy.some(
         (userId) =>
@@ -1124,13 +800,12 @@ export const messageSeen = catchAsyncError(
       await message.save();
     }
 
-    const io = req.get.app;
-    
-    io.to(chatId).emit("messageSeen", {
-        messageId,
-        userId: req.user._id
-    })  
+    const io = req.app.get("io");
 
+    io.to(chat._id.toString()).emit("messageSeen", {
+    messageId,
+    userId: req.user._id
+});
 
     return res.status(200).json({
       success: true,
@@ -1139,7 +814,6 @@ export const messageSeen = catchAsyncError(
     });
   }
 );
-
 
 
 export const updateGroupImage = catchAsyncError(
@@ -1196,13 +870,12 @@ export const updateGroupImage = catchAsyncError(
        );
     }
 
-
     const uploadedImage = await cloudinary.uploader.upload(
     groupImage.tempFilePath,
     {
         folder: "group_images",
     }
-);
+  );
 
     // Save Cloudinary URL
     chat.groupImage =   
@@ -1238,12 +911,9 @@ export const updateGroupImage = catchAsyncError(
 );               
 
 
-
-
 export const renameGroup = catchAsyncError(async (req, res, next) => {
   const { chatId, name } = req.body;
 
-  // 1. VALIDATION FIRST
   if (!chatId || !name) {
     return next(
       new ErrorHandler(
@@ -1253,7 +923,6 @@ export const renameGroup = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  // 2. FIX: ADD AWAIT HERE
   const chat = await Chat.findById(chatId);
 
   if (!chat) {
@@ -1265,7 +934,6 @@ export const renameGroup = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  // 3. OPTIONAL: only admin can rename (IMPORTANT for WhatsApp style)
   if (
     String(chat.groupAdmin) !==
     String(req.user._id)
@@ -1278,7 +946,6 @@ export const renameGroup = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  // 4. UPDATE CHAT
   const updatedChat =
     await Chat.findByIdAndUpdate(
       chatId,
@@ -1288,7 +955,7 @@ export const renameGroup = catchAsyncError(async (req, res, next) => {
       .populate("participants", "-password")
       .populate("groupAdmin", "-password");
 
-  // 5. SOCKET UPDATE
+  // SOCKET UPDATE
   const io = req.app.get("io");
 
   updatedChat.participants.forEach(

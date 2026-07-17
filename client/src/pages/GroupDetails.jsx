@@ -7,6 +7,8 @@ import GroupMember from "../components/groupDetails/GroupMember";
 import GroupDangerZone from "../components/groupDetails/GroupDangerZone";
 import { useSelector } from "react-redux";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const GroupDetails = () => {
   const navigate = useNavigate();
   const [group, setGroup] = useState(null);
@@ -22,7 +24,7 @@ const GroupDetails = () => {
     const fetchGroup = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/v1/chat/group/details/${chatId}`,
+          `${API_URL}/api/v1/chat/group/details/${chatId}`,
           { withCredentials: true }
         );
 
@@ -38,7 +40,7 @@ const GroupDetails = () => {
   const handleLeaveGroup = async () => {
     try {
       await axios.delete(
-        "http://localhost:5000/api/v1/chat/group/leave",
+        `${API_URL}/api/v1/chat/group/leave`,
         {
           data: {
             chatId: group?._id,
@@ -59,7 +61,7 @@ const GroupDetails = () => {
   const handleDeleteGroup = async () => {
     try {
       const response = await axios.delete(
-        "http://localhost:5000/api/v1/chat/group/delete",
+        `${API_URL}/api/v1/chat/group/delete`,
         {
           data: {
             chatId: group._id,
@@ -67,8 +69,6 @@ const GroupDetails = () => {
           withCredentials: true,
         }
       );
-
-      console.log(response.data);
 
       navigate("/");
     } catch (error) {
@@ -90,8 +90,8 @@ const GroupDetails = () => {
   return (
     <section className="min-h-screen bg-[#EFEAE2] px-2 py-4">
       <div className="mx-auto w-full max-w-3xl rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-lg">
-        {/* Top Gradient */}
-        <div className="h-2 bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600" />
+       
+        <div className="h-2 bg-gradient-to-r " />
 
         {/* Header */}
         <div className="p-6">
@@ -124,10 +124,7 @@ const GroupDetails = () => {
           />
         </div>
 
-      
-
-        {/* Danger Zone */}
-        <div className="p-6 bg-red-50/40">
+        {/* Danger Zone */}     
           <GroupDangerZone
             group={group}
             setGroup={setGroup}
@@ -135,7 +132,7 @@ const GroupDetails = () => {
             onLeaveGroup={handleLeaveGroup}
             onDeleteGroup={handleDeleteGroup}
           />
-        </div>
+       
       </div>
     </section>
   );

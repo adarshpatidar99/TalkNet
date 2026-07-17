@@ -22,6 +22,8 @@ import { FaUser } from "react-icons/fa";
 // Assets
 import logo from "../assets/TalkNet2.png";
 
+import Spinner from "../components/Spinner";
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const Register = () => {
@@ -39,7 +41,6 @@ const Register = () => {
   const [avatar, setAvatar] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
 
-  // Loading States
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -269,14 +270,16 @@ const Register = () => {
           />
 
           <button
-            disabled={loading}
-            type="submit"
-            className="w-full py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-violet-600 via-indigo-500 to-sky-400 hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+             disabled={loading}
+             type="submit"
+             className="w-full py-2 rounded-lg text-sm font-semibold            text-white bg-gradient-to-r from-violet-600 via-indigo-500 to-sky-400 hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            {loading
-             ? "Creating Account..."
-              : "Register"}
-          </button>
+          {loading ? (
+          <Spinner />
+           ) : (
+            "Register"
+          )}
+        </button>
 
           <button
             type="button"

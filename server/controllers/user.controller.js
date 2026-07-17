@@ -6,8 +6,6 @@ import catchAsyncError from '../middlewares/catchAsyncError.middleware.js'
 import cloudinary from "../config/cloudinary.js";
 
 
-// REGISTER USER
-
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, username, password } = req.body;
 
@@ -27,6 +25,19 @@ export const register = catchAsyncError(async (req, res, next) => {
       )
     );
   }
+
+   const existingUsername = await User.findOne({
+    username: username.toLowerCase(),
+   });
+
+    if(existingUsername){
+        return next(
+         new ErrorHandler(
+             "Username already exists",
+             400
+         )
+      );
+    }
 
   let avatarData = {
     public_id: "",
@@ -95,7 +106,7 @@ export const register = catchAsyncError(async (req, res, next) => {
   );
 });
 
-// LOGIN USER
+
 export const login = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -113,11 +124,11 @@ export const login = catchAsyncError(async (req, res, next) => {
 });
 
 
-// LOGOUT USER
 export const logout = catchAsyncError(async (req, res) => {
-  res.cookie("token", "", {
+  res.clearCookie("token", {
     httpOnly: true,
-    expires: new Date(Date.now()),
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   });
 
   res.status(200).json({
@@ -127,7 +138,6 @@ export const logout = catchAsyncError(async (req, res) => {
 });
 
 
-// GET ALL USERS
 export const getAllUsers = catchAsyncError(async (req, res) => {
   const users = await User.find().select("-password");
 
@@ -138,7 +148,6 @@ export const getAllUsers = catchAsyncError(async (req, res) => {
 });
 
 
-// GOOGLE LOGIN
 export const googleLogin = catchAsyncError(async (req, res, next) => {
 const { name, email, avatar } = req.body;
 
@@ -168,7 +177,6 @@ sendToken(user, 201, res, "User registered with Google successfully!");
 });
 
 
-// GOOGLE REGISTER
 export const googleRegister = catchAsyncError(async (req, res, next) => {
 const { name, email, username, avatar } = req.body;
 
@@ -179,7 +187,6 @@ return next(new ErrorHandler("Name, email, and role are required", 400));
 const existingUser = await User.findOne({ email });
 
 if (existingUser) {
-// Instead of error, you might want to log them in
 sendToken(existingUser, 200, res, "User register with Google!");
 return;
 }
@@ -191,16 +198,14 @@ username,
 avatar: {
       public_id: null, 
       url: avatar },
-isGoogleAccount: true, // mark it so password isn't required
+isGoogleAccount: true, 
 });
 
 sendToken(user, 201, res, "User Registered with Google!");
 });
 
 
-
-// GET CURRENT LOGGED IN USER
-export const getCurrectUser = catchAsyncError(async (req, res, next) => {
+export const getCurrentUser = catchAsyncError(async (req, res, next) => {
   if (!req.user)
     return next(new ErrorHandler("User not logged in", 401));
 
@@ -216,7 +221,6 @@ export const getCurrectUser = catchAsyncError(async (req, res, next) => {
 });
 
 
-
 export const updateProfile = catchAsyncError(
   async (req, res, next) => {
 
@@ -226,7 +230,7 @@ export const updateProfile = catchAsyncError(
       );
     }
 
-    const { name, about, phone } = req.body;
+    const { name, about } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -236,33 +240,16 @@ export const updateProfile = catchAsyncError(
       );
     }
 
-    // =========================
     // Update Fields
-    // =========================
     if (name !== undefined) {
       user.name = name;
-    }
-
-    if (phone !== undefined) {
-
-      if (!/^\d{10}$/.test(phone)) {
-       return next(
-       new ErrorHandler(
-        "Phone number must be exactly 10 digits",
-        400
-      )
-    );
-       }
-      user.phone = phone;
     }
 
     if (about !== undefined) {
       user.about = about;
     }
 
-    // =========================
     // Avatar Upload
-    // =========================
     const avatar = req.files?.avatar;
 
     if (avatar) {
@@ -321,3 +308,51 @@ export const updateProfile = catchAsyncError(
   }
 );
 
+
+export const removeAvatar = catchAsyncError(async (req, res, next) => {  
+
+    if(!req.user) {
+       return next (new ErrorHandler("User not loggedIn...", 401));
+    }
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+    return next(new ErrorHandler("User not found", 404)
+    )}; 
+
+    if(user.avatar?.public_id) {
+       await cloudinary.uploader.destroy(user.avatar.public_id);
+    }
+
+    user.avatar = {
+      public_id: "",
+      url: "",
+    }
+
+    await user.save();
+
+    res.status(200).json({
+    success: true,
+    message: "Profile picture removed successfully",
+    user,
+  });
+
+})
+ 
+
+export const getUserProfile = catchAsyncError (async (req, res, next) => {
+   
+    const {id} = req.params;     
+    const user = await User.findById(id).select("-password");
+
+    if(!user) {
+       return next(new ErrorHandler("user not found...", 404))
+    }                                            
+     
+    return res.status(200).json({
+      success: true,                             
+      user                                
+    });                                          
+
+})

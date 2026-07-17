@@ -1,16 +1,37 @@
-import express from 'express';
-import { getAllUsers, getCurrectUser, login, logout, register, googleLogin, googleRegister, updateProfile } from '../controllers/user.controller.js'
-import { isAuth } from '../middlewares/auth.middleware.js';
+import express from "express";
+
+import {
+  getAllUsers,
+  getCurrentUser,
+  login,
+  logout,
+  register,
+  googleLogin,
+  googleRegister,
+  updateProfile,
+  removeAvatar,
+  getUserProfile,
+} from "../controllers/user.controller.js";
+
+import { isAuth } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.get('/logout', logout);
-router.get('/', getAllUsers);
-router.get('/me', isAuth , getCurrectUser);
-router.post('/google/register', googleRegister);
-router.post('/google/login', googleLogin )
-router.put('/updateprofile', isAuth, updateProfile);                                             
+// Public routes
+router.post("/register", register);
+router.post("/login", login);
+router.post("/google/register", googleRegister);
+router.post("/google/login", googleLogin);
 
-export default router
+// Protected routes (require authentication)
+router.get("/me", isAuth, getCurrentUser);
+router.post("/logout", isAuth, logout);
+router.patch("/updateprofile", isAuth, updateProfile);
+
+// Get all users (admin/debug use case)       
+router.get("/", isAuth ,getAllUsers);
+router.get('/profile/:id', isAuth, getUserProfile);
+
+router.delete('/remove-avatar', isAuth, removeAvatar);
+
+export default router;
