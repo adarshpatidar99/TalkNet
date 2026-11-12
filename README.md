@@ -134,3 +134,23 @@ Never commit `.env` files, Firebase service account JSON files, API keys, databa
 Developed as a full-stack web development project.
 
 **GitHub:** https://github.com/adarshpatidar99
+
+## Screenshots
+
+### Login
+![TalkNet Login](screenshots/login.jpeg)
+
+### Private One-to-One Chat
+![Private Chat](screenshots/private-chat.png)
+
+### Group Chat
+![Group Chat](screenshots/group-chat.png)
+
+### Media Sharing
+![Private Chat Media Sharing](screenshots/private-chat-media.png)
+
+### Message Deletion
+![Message Deletion](screenshots/message-deletion.png)
+
+### Mobile Interface
+![TalkNet Mobile Chat](screenshots/mobile-chat.jpeg)
