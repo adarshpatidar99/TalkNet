@@ -15,7 +15,6 @@
   background: transparent;
 }
 
-
 /* Reduce toast size */
 .Toastify__toast {
   padding: 8px 12px !important;
@@ -36,3 +35,7 @@
   width: 14px !important;
   height: 14px !important;
 }
+
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

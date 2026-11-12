@@ -11,27 +11,33 @@ import {
   updateProfile,
   removeAvatar,
   getUserProfile,
+  phoneLogin,
+  phoneRegister,
 } from "../controllers/user.controller.js";
 
 import { isAuth } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Public routes
+// Email authentication
 router.post("/register", register);
 router.post("/login", login);
+
+// Google authentication
 router.post("/google/register", googleRegister);
 router.post("/google/login", googleLogin);
 
-// Protected routes (require authentication)
+// Phone OTP authentication
+router.post("/phone/register", phoneRegister);
+router.post("/phone/login", phoneLogin);
+
+// Protected routes
 router.get("/me", isAuth, getCurrentUser);
 router.post("/logout", isAuth, logout);
 router.patch("/updateprofile", isAuth, updateProfile);
+router.delete("/remove-avatar", isAuth, removeAvatar);
 
-// Get all users (admin/debug use case)       
-router.get("/", isAuth ,getAllUsers);
-router.get('/profile/:id', isAuth, getUserProfile);
-
-router.delete('/remove-avatar', isAuth, removeAvatar);
+router.get("/", isAuth, getAllUsers);
+router.get("/profile/:id", isAuth, getUserProfile);
 
 export default router;

@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
       trim: true,
     },
 
@@ -36,6 +37,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
       select: false,
+      required: function () {
+        return !this.isGoogleAccount && !this.phoneVerified;
+      },
+    },
+
+    phoneNumber: {
+      type: String,
+      default: undefined,
+      trim: true,
+    },
+
+    phoneVerified: {
+      type: Boolean,
+      default: false,
     },
 
     avatar: {
@@ -63,16 +78,16 @@ const userSchema = new mongoose.Schema(
 
 // Hash password before saving
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
-
-  if (!this.password) return;
+  if (!this.isModified("password") || !this.password) return;
 
   this.password = await bcrypt.hash(this.password, 10);
 });
 
 // Compare password
 userSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  if (!this.password || !enteredPassword) return false;
+
+  return bcrypt.compare(enteredPassword, this.password);
 };
 
 // Generate JWT token
@@ -86,8 +101,17 @@ userSchema.methods.getJwtToken = function () {
   );
 };
 
+// Unique phone number only when phoneNumber is a string
+userSchema.index(
+  { phoneNumber: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      phoneNumber: { $type: "string" },
+    },
+  }
+);
+
 const User = mongoose.model("User", userSchema);
+
 export default User;
-
-
-

@@ -1,116 +1,60 @@
 import React from "react";
 import { IoClose } from "react-icons/io5";
-import { FiEdit2 } from "react-icons/fi";
 
-const RenameGroupModal = ({
-  groupName,
-  setGroupName,
-  onClose,
-  onSave,
-}) => {
+const RenameGroupModal = ({ groupName, setGroupName, onClose, onSave }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-[12px] p-0 sm:p-4">
 
-      {/* Modal */}
-      <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden">
+      <div className="w-full sm:w-[400px] bg-white rounded-t-[28px] sm:rounded-[24px] shadow-2xl overflow-hidden animate-[slideUp_0.25s_ease]">
 
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+        <div className="sm:hidden flex justify-center pt-3 pb-1">
+          <div className="h-1.5 w-10 rounded-full bg-slate-300" />
+        </div>
 
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <FiEdit2 className="text-blue-600 text-lg" />
-            </div>
-
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">
-                Rename Group
-              </h2>
-
-              <p className="text-sm text-slate-500">
-                Update your group name
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="h-10 w-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition"
-          >
-            <IoClose className="text-2xl text-slate-600" />
+        <div className="flex items-center justify-between px-5 py-4">
+          <h2 className="text-[19px] font-semibold text-slate-900">
+            Rename group
+          </h2>
+          <button onClick={onClose} className="h-9 w-9 rounded-full bg-[#F1F2F5] hover:bg-slate-200 flex items-center justify-center text-slate-600 transition active:scale-95">
+            <IoClose className="text-[20px]" />
           </button>
-
         </div>
 
-        {/* Body */}
-        <div className="px-6 py-6">
-
-          <input
-            type="text"
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            placeholder="Enter group name..."
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              px-4
-              py-3
-              outline-none
-              focus:border-blue-500
-              focus:ring-4
-              focus:ring-blue-100
-              transition
-            "
-          />
-
+        <div className="px-5 pb-6">
+          <div className="relative">
+            <input
+              autoFocus
+              type="text"
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              placeholder="Group name"
+              maxLength={40}
+              className="w-full bg-[#F1F2F5] focus:bg-white border border-transparent focus:border-blue-400 focus:ring-4 focus:ring-blue-100 rounded-[14px] px-4 py-[14px] text-[17px] text-slate-900 placeholder:text-slate-500 outline-none transition-all"
+            />
+            <span className="absolute -bottom-6 right-1 text-[11px] text-slate-400">
+              {groupName.length}/40
+            </span>
+          </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-5">
-
+        <div className="p-4 bg-[#F8F9FB] border-t border-slate-100 flex gap-3">
           <button
             onClick={onClose}
-            className="
-              px-5
-              py-2.5
-              rounded-xl
-              border
-              border-slate-300
-              text-slate-700
-              hover:bg-slate-100
-              transition
-            "
+            className="flex-1 h-[48px] rounded-full bg-white border border-slate-200 text-[15px] font-medium text-slate-700 hover:bg-slate-50 transition active:scale-[0.98]"
           >
             Cancel
           </button>
-
           <button
             onClick={onSave}
             disabled={!groupName.trim()}
-            className="
-              px-6
-              py-2.5
-              rounded-xl
-              bg-gradient-to-r
-              from-blue-600
-              to-indigo-600
-              text-white
-              font-semibold
-              hover:shadow-lg
-              transition
-              disabled:opacity-50
-              disabled:cursor-not-allowed
-            "
+            className="flex-1 h-[48px] rounded-full bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600 text-white text-[15px] font-semibold hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed transition active:scale-[0.98] shadow-[0_6px_18px_rgba(37,99,235,0.35)]"
           >
-            Save Changes
+            Save
           </button>
-
         </div>
-
       </div>
 
+      <style>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
     </div>
   );
 };

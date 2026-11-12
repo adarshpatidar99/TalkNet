@@ -18,9 +18,7 @@ const UserProfile = () => {
       try {
         const response = await axios.get(
           `${API_URL}/api/v1/user/profile/${id}`,
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
         setUser(response.data.user);
       } catch (error) {
@@ -29,7 +27,6 @@ const UserProfile = () => {
         setLoading(false);
       }
     };
-
     fetchUserProfile();
   }, [id]);
 
@@ -57,70 +54,63 @@ const UserProfile = () => {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#EFEAE2]">
-        <p className="text-slate-500">Loading Profile...</p>
+        <p className="text-[16px] text-slate-500">Loading Profile...</p>
       </div>
     );
   }
 
   return (
-    <section className="min-h-screen bg-[#EFEAE2] px-3 py-4"> 
-
+    <section className="min-h-screen bg-[#EFEAE2] px-3 py-4">
       <div className="mx-auto w-full max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md">
 
-        <div className="border-b border-slate-100 bg-white px-5 py-4 flex items-center">
+        <div className="border-b border-slate-100 bg-white px-4 py-4 flex items-center">
           <button
             onClick={() => navigate(-1)}
-            className="rounded-full p-2 hover:bg-slate-100 transition"
+            className="rounded-full p-2.5 hover:bg-slate-100 transition flex items-center justify-center"
           >
-            <IoMdArrowBack size={22} className="text-slate-700" />
+            <IoMdArrowBack size={24} className="text-slate-700" />
           </button>
-          <h2 className="flex-1 text-center text-lg font-semibold text-slate-800">
-          User Info
+          <h2 className="flex-1 text-center text-[19px] font-semibold text-slate-800">
+            User Info
           </h2>
-          <div className="w-10"></div>
+          <div className="w-11"></div>
         </div>
 
         <div className="p-6">
           <div className="flex flex-col items-center">
             <div className="relative">
               <img
-                onClick={() => setShowAvatar(true)} 
+                onClick={() => setShowAvatar(true)}
                 src={
                   user?.avatar?.url ||
                   "https://www.w3schools.com/w3images/avatar2.png"
                 }
                 alt={user?.name}
-                className="h-28 w-28 rounded-full border-2 border-white object-cover shadow-md cursor-pointer"
+                className="h-32 w-32 rounded-full border-2 border-white object-cover shadow-md cursor-pointer"
               />
-           
             </div>
 
-            <p className="mt-4 text-xl font-semibold text-slate-800">
+            <p className="mt-4 text-[22px] font-semibold text-slate-800 leading-tight">
               {user?.name}
             </p>
 
-            <p className="text-sm text-slate-500">@{user?.username}</p>
+            <p className="mt-1 text-[15px] text-slate-500">@{user?.username}</p>
 
             <p
-              className={`mt-2 text-sm ${
+              className={`mt-2 text-[15px] ${
                 user?.isOnline? "text-green-600" : "text-slate-500"
               }`}
             >
-              {user?.isOnline
-               ? "Online"
-                : `Last seen ${formatLastSeen(user?.lastSeen)}`}
+              {user?.isOnline? "Online" : `Last seen ${formatLastSeen(user?.lastSeen)}`}
             </p>
           </div>
         </div>
 
-        <div className="border-t border-slate-100"></div> 
-
-
         <div className="border-t border-slate-100"></div>
 
         <div className="p-5">
-          <p className="text-xs text-slate-400 font-semibold">ABOUT</p>
-          <p className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">
+          <p className="text-[13px] text-slate-400 font-semibold tracking-wide">ABOUT</p>
+          <p className="mt-2.5 text-[17px] text-slate-700 whitespace-pre-wrap leading-[22px]">
             {user?.about?.trim()? user.about : "No about added"}
           </p>
         </div>
@@ -128,8 +118,8 @@ const UserProfile = () => {
         <div className="border-t border-slate-100"></div>
 
         <div className="p-5">
-          <p className="text-xs text-slate-400 font-semibold">JOINED</p>
-          <p className="mt-2 text-sm text-slate-700">
+          <p className="text-[13px] text-slate-400 font-semibold tracking-wide">JOINED</p>
+          <p className="mt-2.5 text-[17px] text-slate-700 leading-[22px]">
             {formatJoinedDate(user?.createdAt)}
           </p>
         </div>
@@ -138,13 +128,14 @@ const UserProfile = () => {
       {showAvatar && (
         <div
           onClick={() => setShowAvatar(false)}
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
         >
           <img
             src={
               user?.avatar?.url ||
               "https://www.w3schools.com/w3images/avatar2.png"
             }
+            alt="avatar large"
             className="max-h-[90vh] max-w-[90vw] rounded-xl shadow-xl"
           />
         </div>

@@ -1,167 +1,165 @@
 import React, { useRef, useState, useEffect } from "react";
-import { IoClose } from "react-icons/io5"; 
+import { IoClose } from "react-icons/io5";
 import { BsCheckAll } from "react-icons/bs";
 import { IoMdCheckmark } from "react-icons/io";
 
-const MessageItem = ({ message, selectedUser, currentUserId }) => {
+const MessageItem = ({
+  message,
+  selectedUser,
+  currentUserId,
+  onDeleteForMe,
+  onDeleteForEveryone,
+}) => {
   const isGroup = selectedUser?.isGroupChat;
-  const sender = typeof message.senderId === "object"? message.senderId : null;
+  const sender = typeof message.senderId === "object" ? message.senderId : null;
   const senderId = sender?._id || message.senderId;
   const senderName = sender?.name || "Unknown";
   const senderAvatar = sender?.avatar?.url || "https://www.w3schools.com/w3images/avatar2.png";
-  const isOwnMessage = String(senderId) === String(currentUserId);
+  const isOwn = String(senderId) === String(currentUserId);
+  const isDeleted = Boolean(message.isDeletedForEveryone);
+  const isMedia = message.type === "image" || message.type === "video";
+  const isTemp = String(message._id).startsWith("temp-");
 
-  const textRef = useRef(null);
-  const [isLong, setIsLong] = useState(false);
-  const [showPreview, setShowPreview] = useState(false); // NEW
+  const [showPreview, setShowPreview] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
 
-const formatTime = (date) =>
-  new Intl.DateTimeFormat("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(date));
+  useEffect(() => {
+    if (!showMenu) return;
+    const close = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false); };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [showMenu]);
 
-const renderStatus = () => {
-  if (!isOwnMessage) return null;
+  const formatTime = (d) => d ? new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", hour12: true }).format(new Date(d)) : "";
 
-  if(message.status === "sending") {
-     return (
-       <span className="text-gray-300 text-[11px] animate-pulse">
-         sending...
-       </span>
-     )
+  const renderStatus = () => {
+  if (!isOwn) return null;
+
+  if (message.status === "sending") {
+    return (
+      <span className="text-[10px] text-white/70 animate-pulse">
+        Sending
+      </span>
+    );
   }
+
+  if (message.status === "failed") {
+  return (
+    <span
+      className="text-[10px] text-red-200"
+      title="Message failed to send"
+    >
+      Failed
+    </span>
+  );
+}
 
   switch (message.status) {
     case "seen":
       return (
-        <BsCheckAll className="text-sky-400 text-[17px]" />
+        <BsCheckAll
+          className="h-[16px] w-[16px] text-[#38BDF8] drop-shadow-sm"
+          title="Seen"
+        />
       );
 
     case "delivered":
       return (
-        <BsCheckAll className="text-gray-300 text-[17px]" />
+        <BsCheckAll
+          className="h-[15px] w-[15px] text-white"
+          title="Delivered"
+        />
       );
 
-    default: // sent
+    default:
       return (
-        <IoMdCheckmark className="text-gray-300 text-[14px]" />
+        <IoMdCheckmark
+          className="h-[14px] w-[14px] text-white/80"
+          title="Sent"
+        />
       );
   }
 };
 
-  useEffect(() => {
-    if (message.type === "text" && textRef.current) {
-      const el = textRef.current;
-      setIsLong(el.scrollWidth > el.clientWidth || message.text.length > 50);
-    }
-  }, [message.text, message.type]);
-
-  const timeColor = isOwnMessage? "text-white/90" : "text-slate-500";
 
   return (
     <>
-      <div className={`flex ml-2 mr-2 items-end gap-2 mb-1 ${isOwnMessage? "justify-end" : "justify-start"}`}>
-        {isGroup &&!isOwnMessage && (
-          <img src={senderAvatar} className="h-7 w-7 rounded-full object-cover self-start" alt={senderName} />
+      <div className={`group flex w-full items-end gap-1.5 px-2.5 md:px-3 mb-[2px] ${isOwn ? "justify-end" : "justify-start"}`}>
+        
+        {isGroup && !isOwn && (
+          <img src={senderAvatar} alt={senderName} className="mb-1 h-[28px] w-[28px] md:h-7 md:w-7 rounded-full object-cover shrink-0" />
         )}
 
-        <div className={`max-w-[75%] sm:max-w-[65%] ${message.type === "text"? "px-2 py-1.5" : "p-1"} rounded-2xl shadow-sm ${
-          isOwnMessage? "bg-gradient-to-r from-blue-500 to-blue-600 rounded-br-md" : "bg-white rounded-bl-md"
-        }`}>
-
-          {isGroup &&!isOwnMessage && (
-            <p className="text-[11px] font-semibold text-blue-600 px-1 pb-0.5">{senderName}</p>
-          )}               
-
-          {/* TEXT MESSAGE */}
-          {message.type === "text" && (
-            <div className="flex flex-wrap items-end gap-x-1.5">
-              <p ref={textRef} className={`text-sm whitespace-pre-wrap break-words break-all leading-snug ${isOwnMessage? "text-white" : "text-slate-800"}`}>
-                {message.text}
-              </p>
-              <span className={`flex items-center gap-1 text-[11px] shrink-0 ${timeColor} ${isLong? "w-full justify-end mt-0.5" : "ml-auto"}`}>
-                {formatTime(message.createdAt)}
-                {renderStatus()}
-              </span>
-            </div>
-          )}
-
-          {message.type === "image" && (
-    <div className="relative rounded-xl overflow-hidden">
-    <img
-      src={message.imageUrl}
-      alt="message"                            
-      className="block max-w-[250px] max-h-[300px] w-auto h-auto object-cover cursor-pointer hover:opacity-90 transition"
-      onClick={() => setShowPreview(true)}
-    />
-
-    {/* FAILED STATE */}
-   {message.status === "failed" && (
-  <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/60">
-    <p className="text-sm font-medium text-red-400">
-      Upload failed
-    </p>
-  </div>
-)}
-
-    <div className={`absolute bottom-1 right-1.5 flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md backdrop-blur-sm bg-black/40 ${timeColor}`}>
-      {formatTime(message.createdAt)}
-      {renderStatus()}
-    </div>
-  </div>
-)}
-
-          {/* VIDEO - overlay time */}
-          {message.type === "video" && (
-            <div className="relative rounded-xl overflow-hidden">
-              <video controls className="block max-w-[250px] max-h-[300px] w-auto h-auto">
-                <source src={message.videoUrl} />
-              </video>
-              {message.status === "sending" && (        
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
-                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        <div className={`flex max-w-[78%] md:max-w-[62%] lg:max-w-[56%] items-center gap-1 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
+          
+          {(!isTemp || message.status === "failed") && !isDeleted && (
+            <div ref={menuRef} className="relative shrink-0">
+              <button onClick={() => setShowMenu(v => !v)} className="flex h-7 w-7 items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm text-slate-500 text-[14px] font-bold transition active:scale-90 md:opacity-0 md:group-hover:opacity-100">
+                ⋮
+              </button>
+              {showMenu && (
+                <div className={`absolute top-8 z-50 min-w-[160px] rounded-[12px] border border-slate-200 bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)] ${isOwn ? "right-0" : "left-0"}`}>
+                  <button onClick={() => { setShowMenu(false); onDeleteForMe?.(message._id); }} className="w-full rounded-[8px] px-3 py-2.5 text-left text-[13px] font-mediumhover:bg-slate-50">Delete for me</button>
+                  {isOwn && !isTemp && <button onClick={() => { setShowMenu(false); onDeleteForEveryone?.(message._id); }} className="w-full rounded-[8px] px-3 py-2.5 text-left text-[13px] font-medium text-red-600 hover:bg-red-50">Delete for everyone</button>}
                 </div>
-              )}                            
-              <div className={`absolute bottom-1 right-1.5 flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md backdrop-blur-sm bg-black/40 ${timeColor}`}>
-                {formatTime(message.createdAt)}
-                {renderStatus()}
+              )}
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            {!isDeleted && message.type === "text" && (
+              <div className={`relative px-[9px] md:px-[10px] pt-[6px] md:pt-[5px] pb-[5px] md:pb-[4px] shadow-[0_1px_0.5px_rgba(0,0,0,0.12)] ${isOwn ? "bg-[#0084FF] text-white rounded-[14px] md:rounded-[12px] rounded-br-[4px]" : "bg-white border border-slate-100/80 text-[#111B21] rounded-[14px] md:rounded-[12px] rounded-bl-[4px]"}`}>
+                {isGroup && !isOwn && <p className="text-[11px] font-bold leading-[13px] text-[#0084FF] pb-[2px]">{senderName}</p>}
+                <p className="whitespace-pre-wrap break-words text-[15px] md:text-[14.6px] leading-[20px] md:leading-[19px]">
+                  {message.text}
+                  <span className={`float-right ml-2 mt-[6px] inline-flex items-center gap-[2px] text-[10.5px] md:text-[10px] leading-none ${isOwn ? "text-white/80" : "text-[#667781]"}`}>
+                    {formatTime(message.createdAt)}{renderStatus()}
+                  </span>
+                </p>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* AUDIO - time below */}
-          {message.type === "audio" && (
-            <div className="flex flex-col gap-1">
-              <audio controls src={message.audioUrl} className="w-[200px] h-8" />
-              <span className={`flex items-center gap-1 self-end text-[11px] ${timeColor}`}>
-                {formatTime(message.createdAt)}
-                {renderStatus()}
-              </span>
-            </div>
-          )}
+            {isDeleted && (
+              <div className={`px-[10px] py-[6px] md:px-[9px] md:py-[5px] shadow-sm text-[14.5px] md:text-[13.8px] italic leading-[18px] ${isOwn ? "bg-[#0084FF]/80 text-white rounded-[14px] rounded-br-[4px]" : "bg-white border border-slate-100 text-slate-500 rounded-[14px] rounded-bl-[4px]"}`}>
+                <p className="inline">This message was deleted.</p>
+                <span className="float-right ml-3 mt-[4px] text-[10px] opacity-70">{formatTime(message.createdAt || message.deletedAt)}</span>
+              </div>
+            )}
+
+            {!isDeleted && message.type === "image" && (
+              <div className={`relative overflow-hidden p-[3px] md:p-[2px] shadow-sm ${isOwn ? "bg-[#0084FF] rounded-[14px] md:rounded-[12px] rounded-br-[4px]" : "bg-white border border-slate-100 rounded-[14px] md:rounded-[12px] rounded-bl-[4px]"}`}>
+                {isGroup && !isOwn && <p className="px-1 pb-1 text-[11px] font-bold text-[#0084FF]">{senderName}</p>}
+                <img src={message.imageUrl} alt="" onClick={() => setShowPreview(true)} className="block w-[min(72vw,280px)] md:w-[320px] max-h-[320px] md:max-h-[360px] cursor-pointer rounded-[11px] md:rounded-[10px] object-cover bg-slate-100" />
+                <div className="absolute bottom-[6px] right-[6px] flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-[10px] leading-none text-white backdrop-blur-sm">{formatTime(message.createdAt)}{renderStatus()}</div>
+              </div>
+            )}
+
+            {!isDeleted && message.type === "video" && (
+              <div className={`relative overflow-hidden p-[3px] md:p-[2px] shadow-sm ${isOwn ? "bg-[#0084FF] rounded-[14px] md:rounded-[12px] rounded-br-[4px]" : "bg-white border border-slate-100 rounded-[14px] md:rounded-[12px] rounded-bl-[4px]"}`}>
+                {isGroup && !isOwn && <p className="px-1 pb-1 text-[11px] font-bold text-[#0084FF]">{senderName}</p>}
+                <video controls playsInline className="block w-[min(72vw,280px)] md:w-[320px] max-h-[320px] md:max-h-[380px] rounded-[11px] md:rounded-[10px] bg-black object-contain">
+                  <source src={message.videoUrl} />
+                </video>
+                <div className="absolute top-[6px] right-[6px] flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-[10px] leading-none text-white backdrop-blur-sm">{formatTime(message.createdAt)}{renderStatus()}</div>
+              </div>
+            )}
+
+            {!isDeleted && message.type === "audio" && (
+              <div className={`px-2 pt-2 pb-1 md:px-[10px] md:pt-[6px] md:pb-[4px] shadow-[0_1px_0.5px_rgba(0,0,0,0.12)] ${isOwn ? "bg-[#0084FF] text-white rounded-[14px] md:rounded-[12px] rounded-br-[4px]" : "bg-white border border-slate-100 rounded-[14px] md:rounded-[12px] rounded-bl-[4px]"}`}>
+                {isGroup && !isOwn && <p className="pb-1 text-[11px] font-bold text-[#0084FF]">{senderName}</p>}
+                <audio controls src={message.audioUrl} className="block h-[36px] w-[220px] md:w-[260px] md:h-[34px]" />
+                <div className={`flex justify-end items-center gap-1 pt-1 text-[10px] leading-none ${isOwn ? "text-white/80" : "text-[#667781]"}`}>{formatTime(message.createdAt)}{renderStatus()}</div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>                                               
+      </div>
 
-      {/* IMAGE PREVIEW MODAL */}
-      {showPreview && message.type === "image" && (
-        <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowPreview(false)}
-        >
-          <button
-            className="absolute top-4 right-4 text-white text-3xl hover:text-gray-300"
-            onClick={() => setShowPreview(false)}
-          >
-            <IoClose />
-          </button>
-          <img
-            src={message.imageUrl}
-            alt="preview"
-            className="max-w-full max-h-full object-contain"
-            onClick={(e) => e.stopPropagation()} // prevent close when clicking image
-          />
+      {showPreview && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-3" onClick={() => setShowPreview(false)}>
+          <button onClick={() => setShowPreview(false)} className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white"><IoClose size={22} /></button>
+          <img src={message.imageUrl} alt="" onClick={(e) => e.stopPropagation()} className="max-h-full max-w-full rounded-xl object-contain" />
         </div>
       )}
     </>
@@ -169,11 +167,3 @@ const renderStatus = () => {
 };
 
 export default MessageItem;
-
-
-
-
-
-
-
-

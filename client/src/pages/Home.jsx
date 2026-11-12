@@ -4,8 +4,7 @@ import Sidebar from "../components/chat/Sidebar";
 
 const Home = () => {
   return (
-    <div className="h-screen md:h-dvh flex flex-col  overflow-hidden">
-    
+    <div className="h-[100dvh] min-h-0 flex flex-col overflow-hidden">
       <header className="shrink-0">
         <Navbar />
       </header>
@@ -18,6 +17,5 @@ const Home = () => {
 };
 
 export default Home;
-
 
 

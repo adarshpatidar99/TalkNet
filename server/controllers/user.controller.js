@@ -4,6 +4,16 @@ import bcrypt from "bcrypt";
 import ErrorHandler from '../middlewares/error.middleware.js'
 import catchAsyncError from '../middlewares/catchAsyncError.middleware.js'
 import cloudinary from "../config/cloudinary.js";
+import { firebaseAdminAuth } from '../config/firebaseAdmin.js';
+
+
+const normalizeRegistrationData = (name, email, username) => {
+  return {
+    name: name?.trim(),
+    email: email?.trim().toLowerCase(),
+    username: username?.trim().toLowerCase(),
+  };
+};
 
 
 export const register = catchAsyncError(async (req, res, next) => {
@@ -148,61 +158,139 @@ export const getAllUsers = catchAsyncError(async (req, res) => {
 });
 
 
-export const googleLogin = catchAsyncError(async (req, res, next) => {
-const { name, email, avatar } = req.body;
+const verifyGoogleToken = async (idToken) => {
+  if (!idToken) {
+    throw new ErrorHandler("Firebase ID token is required", 400);
+  }
 
-if (!name || !email) {
-return next(new ErrorHandler("Name and email are required", 400));
-}
+  let decodedToken;
 
-let user = await User.findOne({ email });
+  try {
+    decodedToken = await firebaseAdminAuth.verifyIdToken(idToken);
+  } catch {
+    throw new ErrorHandler("Invalid or expired Google token", 401);
+  }
 
-if (user) {
-// User exists → login
-return sendToken(user, 200, res, "User login with Google successfully!");
-}
+  if (
+    decodedToken.firebase?.sign_in_provider !== "google.com" ||
+    !decodedToken.email ||
+    decodedToken.email_verified !== true
+  ) {
+    throw new ErrorHandler("Valid Google authentication required", 401);
+  }
 
-// User doesn’t exist → create new account
-user = await User.create({
-name,
-email,
-avatar: {
-      public_id: null, 
-      url: avatar },
-username: email.split("@")[0],
-isGoogleAccount: true,
-});
+  return decodedToken;
+};
 
-sendToken(user, 201, res, "User registered with Google successfully!");
-});
+// GOOGLE REGISTER
+export const googleRegister = catchAsyncError(
+  async (req, res, next) => {
+    const { idToken, username } = req.body;
 
+    const decodedToken = await verifyGoogleToken(idToken);
 
-export const googleRegister = catchAsyncError(async (req, res, next) => {
-const { name, email, username, avatar } = req.body;
+    const email = decodedToken.email.trim().toLowerCase();
 
-if (!name || !email) {
-return next(new ErrorHandler("Name, email, and role are required", 400));
-}
+    // Check whether this email already exists.
+    const existingUser = await User.findOne({ email });
 
-const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      if (!existingUser.isGoogleAccount) {
+        return next(
+          new ErrorHandler(
+            "This email is already registered using another login method.",
+            409
+          )
+        );
+      }
 
-if (existingUser) {
-sendToken(existingUser, 200, res, "User register with Google!");
-return;
-}
+      return sendToken(
+        existingUser,
+        200,
+        res,
+        "Google login successful!"
+      );
+    }
 
-const user = await User.create({
-name,
-email,
-username,
-avatar: {
-      public_id: null, 
-      url: avatar },
-isGoogleAccount: true, 
-});
+    const normalizedUsername = username?.trim().toLowerCase();
 
-sendToken(user, 201, res, "User Registered with Google!");
-});
+    if (
+      !normalizedUsername ||
+      !/^[a-zA-Z0-9_]{3,20}$/.test(normalizedUsername)
+    ) {
+      return next(
+        new ErrorHandler("Invalid username. Please enter a valid username.", 400)
+      );
+    }
+
+    const existingUsername = await User.findOne({
+      username: normalizedUsername,
+    });
+
+    if (existingUsername) {
+      return next(
+        new ErrorHandler("Username already taken", 409)
+      );
+    }
+
+    const user = await User.create({
+      name: decodedToken.name || "TalkNet User",
+      email,
+      username: normalizedUsername,
+      password: null,
+      isGoogleAccount: true,
+      avatar: {
+        public_id: null,
+        url: decodedToken.picture || null,
+      },
+    });
+
+    return sendToken(
+      user,
+      201,
+      res,
+      "Google registration successful!"
+    );
+  }
+);
+
+// GOOGLE LOGIN
+export const googleLogin = catchAsyncError(
+  async (req, res, next) => {
+    const { idToken } = req.body;
+
+    const decodedToken = await verifyGoogleToken(idToken);
+
+    const email = decodedToken.email.trim().toLowerCase();
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return next(
+        new ErrorHandler(
+          "Account not found. Please register first.",
+          404
+        )
+      );
+    }
+
+    if (!user.isGoogleAccount) {
+      return next(
+        new ErrorHandler(
+          "This email is registered using another login method.",
+          409
+        )
+      );
+    }
+
+    return sendToken(
+      user,
+      200,
+      res,
+      "Google login successful!"
+    );
+  }
+);
 
 
 export const getCurrentUser = catchAsyncError(async (req, res, next) => {
@@ -356,3 +444,169 @@ export const getUserProfile = catchAsyncError (async (req, res, next) => {
     });                                          
 
 })
+
+
+export const phoneLogin = catchAsyncError(async (req, res, next) => {
+  const { idToken } = req.body;
+
+  if (!idToken) {
+    return next(new ErrorHandler("Firebase ID token is required", 400));
+  }
+
+  let decodedToken;
+
+  try {
+    decodedToken = await firebaseAdminAuth.verifyIdToken(idToken);
+  } catch {
+    return next(new ErrorHandler("Invalid or expired phone authentication token", 401));
+  }
+
+  // Accept only tokens authenticated through Firebase Phone Authentication.
+  if (decodedToken.firebase?.sign_in_provider !== "phone") {
+    return next(new ErrorHandler("Please authenticate using your phone number", 401));
+  }
+
+  const phoneNumber = decodedToken.phone_number;
+
+  if (!phoneNumber) {
+    return next(new ErrorHandler("Verified phone number not found", 400));
+  }
+
+  // Existing TalkNet account: log in without creating a duplicate.
+  let user = await User.findOne({ phoneNumber });
+
+  if (user) {
+    if (!user.phoneVerified) {
+      return next(new ErrorHandler("Phone number is not verified on this account", 403));
+    }
+
+    return sendToken(user, 200, res, "Phone login successful");
+  }
+
+  // Existing schema requires both email and username.
+  // These placeholders let phone-only accounts use the existing schema.
+  const digits = phoneNumber.replace(/\D/g, "");
+  const email = `phone-${digits}@phone.talknet.invalid`;
+
+  const existingEmail = await User.findOne({ email });
+
+  if (existingEmail) {
+    return next(
+      new ErrorHandler(
+        "An account already uses this phone-login identifier. Please contact support.",
+        409
+      )
+    );
+  }
+
+  // Generate an available username for the new phone-only account.
+  let username;
+  let usernameExists = true;
+
+  while (usernameExists) {
+    const suffix = Math.random().toString(36).slice(2, 10);
+    username = `phone_${digits.slice(-8)}_${suffix}`;
+    usernameExists = Boolean(await User.findOne({ username }));
+  }
+
+  user = await User.create({
+    name: "TalkNet User",
+    username,
+    email,
+    phoneNumber,
+    phoneVerified: true,
+    password: null,
+    isGoogleAccount: false,
+  });
+
+  return sendToken(user, 201, res, "Phone account created successfully");
+});
+
+
+export const phoneRegister = catchAsyncError(async (req, res, next) => {
+  const { idToken, name, email, username } = req.body;
+
+  if (!idToken || !name?.trim() || !email?.trim() || !username?.trim()) {
+    return next(
+      new ErrorHandler(
+        "Verified phone, name, email, and username are required",
+        400
+      )
+    );
+  }
+
+  let decodedToken;
+
+  try {
+    decodedToken = await firebaseAdminAuth.verifyIdToken(idToken);
+  } catch {
+    return next(
+      new ErrorHandler("Invalid or expired Firebase token", 401)
+    );
+  }
+
+  if (decodedToken.firebase?.sign_in_provider !== "phone") {
+    return next(
+      new ErrorHandler("Please verify your phone number using OTP", 401)
+    );
+  }
+
+  const phoneNumber = decodedToken.phone_number;
+
+  if (!phoneNumber) {
+    return next(
+      new ErrorHandler("Verified phone number not found", 400)
+    );
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedUsername = username.trim().toLowerCase();
+
+  const existingPhone = await User.findOne({ phoneNumber });
+
+  if (existingPhone) {
+    return next(
+      new ErrorHandler(
+        "An account with this phone number already exists. Please log in.",
+        409
+      )
+    );
+  }
+
+  const existingEmail = await User.findOne({
+    email: normalizedEmail,
+  });
+
+  if (existingEmail) {
+    return next(
+      new ErrorHandler("Email is already registered", 409)
+    );
+  }
+
+  const existingUsername = await User.findOne({
+    username: normalizedUsername,
+  });
+
+  if (existingUsername) {
+    return next(
+      new ErrorHandler("Username is already taken", 409)
+    );
+  }
+
+  const user = await User.create({
+    name: name.trim(),
+    email: normalizedEmail,
+    username: normalizedUsername,
+    phoneNumber,
+    phoneVerified: true,
+    password: null,
+    isGoogleAccount: false,
+  });
+
+  return sendToken(
+    user,
+    201,
+    res,
+    "Account registered successfully with phone"
+  );
+});

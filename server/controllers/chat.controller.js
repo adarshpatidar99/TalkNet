@@ -4,7 +4,7 @@ import catchAsyncError from '../middlewares/catchAsyncError.middleware.js'
 import Message from "../models/message.model.js"
 import cloudinary from "../config/cloudinary.js";
 
-// Access 1-to-1 chat
+
 export const accessChat = catchAsyncError(async (req, res, next) => {
   const { userId } = req.body;
   if (!userId)
@@ -972,3 +972,103 @@ export const renameGroup = catchAsyncError(async (req, res, next) => {
     chat: updatedChat,
   });
 });
+
+
+export const transferGroupAdmin = catchAsyncError(
+  async (req, res, next) => {
+    const { chatId, newAdminId } = req.body;
+
+    // 1. Validate required fields
+    if (!chatId || !newAdminId) {
+      return next(
+        new ErrorHandler(
+          "ChatId and newAdminId are required",
+          400
+        )
+      );
+    }
+
+    // 2. Find the chat
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return next(
+        new ErrorHandler("Chat not found", 404)
+      );
+    }
+
+    // 3. Only group chats support admin transfer
+    if (!chat.isGroupChat) {
+      return next(
+        new ErrorHandler(
+          "Admin transfer is only available for group chats",
+          400
+        )
+      );
+    }
+
+    // 4. Only the current admin can transfer ownership
+    if (
+      String(chat.groupAdmin) !==
+      String(req.user._id)
+    ) {
+      return next(
+        new ErrorHandler(
+          "Only the current group admin can transfer admin rights",
+          403
+        )
+      );
+    }
+
+    // 5. The new admin must already be a group member
+    const isMember = chat.participants.some(
+      (participant) =>
+        String(participant) === String(newAdminId)
+    );
+
+    if (!isMember) {
+      return next(
+        new ErrorHandler(
+          "The new admin must be a member of this group",
+          400
+        )
+      );
+    }
+
+    // 6. Prevent transferring to the current admin
+    if (String(chat.groupAdmin) === String(newAdminId)) {
+      return next(
+        new ErrorHandler(
+          "This user is already the group admin",
+          400
+        )
+      );
+    }
+
+    // 7. Update the admin in MongoDB
+    chat.groupAdmin = newAdminId;
+    await chat.save();
+
+    // 8. Fetch the updated group with populated user details
+    const updatedChat = await Chat.findById(chatId)
+      .populate("participants", "-password")
+      .populate("groupAdmin", "-password");
+
+    // 9. Notify all group members through Socket.IO
+    const io = req.app.get("io");
+
+    updatedChat.participants.forEach((participant) => {
+      io.to(participant._id.toString()).emit(
+        "groupAdminTransferred",
+        updatedChat
+      );
+    });
+
+    // 10. Send the updated group to the requester
+    return res.status(200).json({
+      success: true,
+      message: "Group admin transferred successfully",
+      chat: updatedChat,
+    });
+  }
+)

@@ -25,7 +25,6 @@ const Profile = () => {
    const [saving, setSaving] = useState(false);
    const [removingAvatar, setRemovingAvatar] = useState(false);
 
-  // Fetch Current User
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -33,9 +32,7 @@ const Profile = () => {
           `${API_URL}/api/v1/user/me`,
           { withCredentials: true }
         );
-
         const user = res.data.user;
-
         setCurrentUser(user);
         setName(user.name || "");
         setAbout(user.about || "");
@@ -50,32 +47,21 @@ const Profile = () => {
         setLoading(false);
       }
     };
-
     fetchCurrentUser();
   }, [navigate]);
-
 
    const handleRemoveAvatar = async () => {
   try {
     setRemovingAvatar(true);
-
     await axios.delete(
       `${API_URL}/api/v1/user/remove-avatar`,
-      {
-        withCredentials: true,
-      }
+      { withCredentials: true }
     );
-
     setAvatar(null);
-
     setCurrentUser((prev) => ({
-      ...prev,
-      avatar: {
-        public_id: "",
-        url: "",
-      },
+     ...prev,
+      avatar: { public_id: "", url: "" },
     }));
-
     toast.success("Profile picture removed successfully.");
   } catch (error) {
     console.log(error);
@@ -87,27 +73,18 @@ const Profile = () => {
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
-
     setSaving(true);
-
     try {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("about", about);
       formData.append("phone", phone);
-
-      if (avatar) {
-        formData.append("avatar", avatar);
-      }
-
+      if (avatar) formData.append("avatar", avatar);
       const { data } = await axios.patch(
       `${API_URL}/api/v1/user/updateprofile`,
        formData,
-      {
-       withCredentials: true,
-      }
+      { withCredentials: true }
     );
-
       toast.success(data.message || "Profile Updated");
       navigate("/");
     } catch (error) {
@@ -121,13 +98,13 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#EFEAE2]">
-        <p className="text-sm text-slate-600">Loading...</p>
+        <p className="text-[16px] text-slate-600">Loading...</p>
       </div>
     );
   }
 
   const avatarUrl = avatar
-  ? URL.createObjectURL(avatar)
+ ? URL.createObjectURL(avatar)
   : currentUser?.avatar?.url ||
     "https://www.w3schools.com/w3images/avatar2.png";
 
@@ -135,34 +112,31 @@ const Profile = () => {
     <section className="min-h-screen bg-[#EFEAE2] px-3 py-4">
       <div className="mx-auto w-full max-w-sm rounded-3xl border border-slate-200 bg-white shadow-md overflow-hidden">
 
-        {/* HEADER */}
-        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4">
+        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-5">
           <button
             onClick={() => navigate(-1)}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-slate-100"
+            className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-slate-100"
           >
-            <IoArrowBack className="text-xl text-slate-700" />
+            <IoArrowBack className="text-[24px] text-slate-700" />
           </button>
 
-          <h2 className="text-base font-semibold text-slate-800">
+          <h2 className="text-[19px] font-semibold text-slate-800">
             Edit Profile
           </h2>
         </div>
 
         <form onSubmit={handleProfileUpdate} className="p-5">
 
-          <div className="mb-6 flex flex-col items-center">
+          <div className="mb-7 flex flex-col items-center">
             <div className="relative">
               <img
                 src={avatarUrl}
                 alt="profile"
-                className="h-24 w-24 rounded-full object-cover border border-white shadow-md"
+                className="h-32 w-32 rounded-full object-cover border border-white shadow-md"
               />
 
-              <label className="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600 text-white">
-                <FiCamera className="text-sm" />
-
-      
+              <label className="absolute bottom-0 right-0 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600 text-white">
+                <FiCamera className="text-[18px]" />
               <input
                 type="file"
                 accept="image/*"
@@ -172,16 +146,15 @@ const Profile = () => {
                   }
                   }}
                   className="hidden"
-              /> 
-
+              />
               </label>
             </div>
 
-            <h2 className="mt-3 text-lg font-semibold text-slate-800">
+            <h2 className="mt-4 text-[22px] font-semibold text-slate-800">
               {currentUser?.name}
             </h2>
 
-            <p className="text-xs text-slate-500">
+            <p className="mt-1 text-[14px] text-slate-500">
               Update your profile
             </p>
 
@@ -190,50 +163,48 @@ const Profile = () => {
             type="button"
             onClick={handleRemoveAvatar}
             disabled={removingAvatar}
-            className="mt-2 text-sm font-medium text-red-600 hover:underline           disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-3 text-[15px] font-medium text-red-600 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
             >
-
-            {removingAvatar ? "Removing..." : "Remove Photo"}
+            {removingAvatar? "Removing..." : "Remove Photo"}
            </button>
            )}
-
           </div>
 
-          <div className="mb-4">
-            <label className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-600">
-              <FaUserAlt className="text-blue-600" />
+          <div className="mb-5">
+            <label className="mb-2 flex items-center gap-2 text-[14px] font-medium text-slate-600">
+              <FaUserAlt className="text-blue-600 text-[14px]" />
               Name
             </label>
 
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-[14px] text-[17px] text-slate-800"
             />
           </div>
 
-          <div className="mb-4">
-            <label className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-600">
-              <BsInfoCircleFill className="text-blue-600" />
+          <div className="mb-6">
+            <label className="mb-2 flex items-center gap-2 text-[14px] font-medium text-slate-600">
+              <BsInfoCircleFill className="text-blue-600 text-[14px]" />
               About
-            </label> 
+            </label>
 
             <textarea
               rows="3"
               value={about}
               onChange={(e) => setAbout(e.target.value)}
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-[14px] text-[17px] text-slate-800"
             />
           </div>
 
           <button
              type="submit"
             disabled={saving}
-            className="w-full rounded-xl bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600 py-3 text-sm font-semibold text-white disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+            className="w-full rounded-xl bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600 py-[14px] text-[17px] font-semibold text-white disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            {saving ? <Spinner /> : "Save Changes"}
+            {saving? <Spinner /> : "Save Changes"}
           </button>
-          
+
         </form>
       </div>
     </section>

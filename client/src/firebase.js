@@ -1,17 +1,16 @@
-import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { initializeApp } from "firebase/app";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyBieET4CCwo1owT3MhPZKsLZMNq4LGYnbs",       
-  authDomain: "realtime-chat-app-99.firebaseapp.com",
-  projectId: "realtime-chat-app-99",
-  storageBucket: "realtime-chat-app-99.firebasestorage.app",
-  messagingSenderId: "148748420472",
-  appId: "1:148748420472:web:582cd33cc6d1d4fd31748d",
+  apiKey: "AIzaSyCjq2TDOrsOawVe2xhmrGfEhkS1mhsTFlI",
+  authDomain: "talknet-tn.firebaseapp.com",
+  projectId: "talknet-tn",
+  storageBucket: "talknet-tn.firebasestorage.app",
+  messagingSenderId: "287537938496",
+  appId: "1:287537938496:web:5bd77ffaa2d8090ea95fa5"
 };
-                                                                   
-const app = initializeApp(firebaseConfig);
 
+const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
       

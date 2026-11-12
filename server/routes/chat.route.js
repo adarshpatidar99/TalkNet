@@ -14,6 +14,7 @@ import {
   updateGroupImage,
   updateGroupDescription,
   deleteGroup,
+  transferGroupAdmin,
 } from "../controllers/chat.controller.js";
 
 import { isAuth } from "../middlewares/auth.middleware.js";
@@ -34,18 +35,13 @@ router.put("/group/rename", isAuth, renameGroup);
 router.put("/group/add", isAuth, addToGroup);
 router.put("/group/remove", isAuth, removeFromGroup);
 
-// Group Settings
 router.put("/group/image", isAuth, updateGroupImage);
 router.put("/group/description", isAuth, updateGroupDescription);
-
-// GROUP MESSAGE
 router.post("/group/send", isAuth, sendGroupMessage);
 router.get("/group/message/:chatId", isAuth, getGroupMessage);
-
-// GROUP DETAILS
 router.get("/group/details/:chatId", isAuth, getGroupDetails);
-
-// GROUP MESSAGE SEEN
 router.put("/group/message/seen", isAuth, messageSeen);
+
+router.put("/transfer-admin", isAuth, transferGroupAdmin);
 
 export default router;

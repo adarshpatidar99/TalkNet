@@ -14,9 +14,7 @@ const Sidebar = () => {
   const [chats, setChats] = useState({});
 
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
-  const [showUsers, setShowUsers] = useState(true);    
 
-  // Select user
   const handleSelectUser = (user) => {
     setSelectedUser(user);
 
@@ -25,19 +23,18 @@ const Sidebar = () => {
     }
   };
 
-  // Back button
   const handleBackToUsers = () => {
     setIsMobileChatOpen(false);
   };
 
-  // Fetch user
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
         const res = await axios.get(
-          `${API_URL}/api/v1/user/me`,    
+          `${API_URL}/api/v1/user/me`,
           { withCredentials: true }
         );
+
         setCurrentUser(res.data.user);
       } catch (err) {
         console.error(err);
@@ -49,9 +46,9 @@ const Sidebar = () => {
     fetchCurrentUser();
   }, []);
 
-  // Socket connect
   useEffect(() => {
     socket.connect();
+
     return () => socket.disconnect();
   }, []);
 
@@ -69,33 +66,43 @@ const Sidebar = () => {
     };
 
     window.addEventListener("resize", handleResize);
+
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full min-h-0 items-center justify-center">
         <p className="text-gray-400">Loading...</p>
       </div>
     );
   }
 
-  return (
-    <div className="flex h-full w-full overflow-hidden font-sans">
+  if (!currentUser) {
+    return (
+      <div className="flex h-full min-h-0 items-center justify-center">
+        <p className="text-gray-500">
+          Unable to load your account. Please log in again.
+        </p>
+      </div>
+    );
+  }
 
+  return (
+    <div className="flex h-full min-h-0 w-full min-w-0 overflow-hidden font-sans">
+    
       <div
         className={`
-          flex flex-col
-          transition-all duration-300
+          flex-col
+          min-h-0
+          overflow-hidden
           bg-slate-100
-          md:w-[340px]
-
+          transition-all duration-300
+          md:flex md:w-[340px] md:shrink-0
           ${isMobileChatOpen ? "hidden" : "flex w-full"}
         `}
       >
-
-        {/* USER LIST */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <AllUserList
             onSelectUser={handleSelectUser}
             currentUserId={currentUser._id}
@@ -104,34 +111,31 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* ================= CHAT AREA ================= */}
+      {/* CHAT AREA */}
       <div
         className={`
-          flex-1
-          bg-slate-100
-          md:flex
-          ${isMobileChatOpen ? "flex" : "hidden"}
+          min-h-0 min-w-0 flex-1 overflow-hidden bg-slate-100
+          ${isMobileChatOpen ? "flex" : "hidden md:flex"}
         `}
       >
-        {currentUser && selectedUser ? (
+        {selectedUser ? (
           <ChatBox
             socket={socket}
             currentUserId={currentUser._id}
-            currentUser={currentUser} 
+            currentUser={currentUser}
             selectedUser={selectedUser}
             chats={chats}
             setChats={setChats}
             onBack={handleBackToUsers}
           />
         ) : (
-          <div className="hidden md:flex flex-1 items-center justify-center">
-            <p className="text-gray-400 text-lg">
+          <div className="hidden flex-1 items-center justify-center md:flex">
+            <p className="text-lg text-gray-400">
               Select a user to start chatting
             </p>
           </div>
         )}
       </div>
-
     </div>
   );
 };

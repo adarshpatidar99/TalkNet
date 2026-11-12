@@ -1,72 +1,65 @@
 import React from "react";
+import { FiLogOut, FiTrash2, FiAlertTriangle } from "react-icons/fi";
 
-const GroupDangerZone = ({
-  group,
-  setGroup,
-  isAdmin,
-  onLeaveGroup,
-  onDeleteGroup,
-}) => {
+const GroupDangerZone = ({ group, setGroup, isAdmin, onLeaveGroup, onDeleteGroup }) => {
   return (
-    <div className="w-full">
+    <div className="w-full space-y-3">
 
-      <div className="space-y-3">
-
-        {/* Leave Group Card */}
-        {!isAdmin && (
-          <div className="p-4 rounded-2xl border border-yellow-200 bg-yellow-50 hover:shadow-md transition">
-            
-            <div className="flex items-center justify-between">
-              
-              <div>
-                <h3 className="font-semibold text-yellow-700">
-                  Leave Group
-                </h3>
-                <p className="text-xs text-yellow-600">
-                  You will lose access to messages
-                </p>
-              </div>
-
-              <button
-                onClick={onLeaveGroup}
-                className="px-4 py-2 rounded-xl bg-yellow-500 text-white text-sm font-medium hover:bg-yellow-600 transition"
-              >
-                Leave
-              </button>
-
+      {/* Leave Group - Only for members */}
+      {!isAdmin && (
+        <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-slate-100/80 overflow-hidden">
+          <button
+            onClick={onLeaveGroup}
+            className="w-full flex items-center gap-4 px-5 py-4 hover:bg-amber-50/60 transition group active:bg-amber-50 text-left"
+          >
+            <div className="h-10 w-10 rounded-full bg-amber-100 group-hover:bg-amber-200 flex items-center justify-center transition shrink-0">
+              <FiLogOut className="text-amber-700 text-[18px]" />
             </div>
-
-          </div>
-        )}
-
-        {/* Delete Group Card (Admin Only) */}
-        {isAdmin && (
-          <div className="p-4 rounded-2xl border border-red-200 bg-red-50 hover:shadow-md transition">
-
-            <div className="flex items-center justify-between">
-
-              <div>
-                <h3 className="font-semibold text-red-700">
-                  Delete Group
-                </h3>
-                <p className="text-xs text-red-600">
-                  Permanently delete this group & messages
-                </p>
-              </div>
-
-              <button
-                onClick={onDeleteGroup}
-                className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition"
-              >
-                Delete
-              </button>
-
+            <div className="flex-1 min-w-0">
+              <p className="text-[16px] font-medium text-amber-700 leading-tight">Leave group</p>
+              <p className="text-[13px] text-slate-500 mt-0.5">You will lose access to messages</p>
             </div>
+            <div className="h-8 w-8 rounded-full bg-amber-100 group-hover:bg-amber-200 flex items-center justify-center shrink-0 transition">
+              <span className="text-amber-700 text-[14px]">›</span>
+            </div>
+          </button>
+        </div>
+      )}
 
+      {/* Delete Group - Only for admin */}
+      {isAdmin && (
+        <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-slate-100/80 overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
+            <div className="h-7 w-7 rounded-full bg-red-50 flex items-center justify-center">
+              <FiAlertTriangle className="text-red-600 text-[14px]" />
+            </div>
+            <h3 className="text-[13px] font-semibold tracking-wide uppercase text-slate-500">Danger zone</h3>
           </div>
-        )}
 
-      </div>
+          <button
+            onClick={onDeleteGroup}
+            className="w-full flex items-center gap-4 px-5 py-4 hover:bg-red-50/70 transition group active:bg-red-50 text-left"
+          >
+            <div className="h-10 w-10 rounded-full bg-red-100 group-hover:bg-red-200 flex items-center justify-center transition shrink-0">
+              <FiTrash2 className="text-red-600 text-[18px]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[16px] font-medium text-red-600 leading-tight">Delete group</p>
+              <p className="text-[13px] text-slate-500 mt-0.5">Permanently delete group and all messages</p>
+            </div>
+            <div className="h-8 w-8 rounded-full bg-red-50 group-hover:bg-red-100 flex items-center justify-center shrink-0 transition">
+              <span className="text-red-500 text-[14px]">›</span>
+            </div>
+          </button>
+
+          <div className="px-5 py-3 bg-[#F8F9FB] border-t border-slate-100">
+            <p className="text-[11px] leading-[14px] text-slate-500 text-center">
+              This action cannot be undone. All members will be removed.
+            </p>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

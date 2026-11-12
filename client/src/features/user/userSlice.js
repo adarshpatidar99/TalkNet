@@ -9,10 +9,10 @@ const initialState = {
   onlineUsers: [],
   isAuthenticated: false,
   loading: false,
+  authLoading: true,
   error: null,
 };
 
-// ================= FETCH ALL USERS =================
 export const fetchUsers = createAsyncThunk(
   "user/fetchUsers",
   async (_, { rejectWithValue }) => {
@@ -34,19 +34,24 @@ export const fetchUsers = createAsyncThunk(
   }
 );
 
-// ================= GET CURRENT USER =================
 export const getCurrentUser = createAsyncThunk(
   "user/getCurrentUser",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(
-        `${API_URL}/api/v1/user/me`,
-        {
-          withCredentials: true,
-        }
-      );
+    
+   const { data } = await axios.get(
+  `${API_URL}/api/v1/user/me`,
+  {
+    withCredentials: true,
+  }
+);
 
-      return data.user;
+if (!data || data.success !== true || !data.user) {
+  return rejectWithValue("Invalid server response");
+}
+
+return data.user;
+
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
@@ -67,6 +72,7 @@ export const userSlice = createSlice({
 
     setUser: (state, action) => {
       state.loading = false;
+      state.authLoading = false;
       state.user = action.payload;
       state.isAuthenticated = true;
       state.error = null;
@@ -74,6 +80,7 @@ export const userSlice = createSlice({
 
     logoutUser: (state) => {
       state.loading = false;
+      state.authLoading = false;
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
@@ -98,7 +105,7 @@ export const userSlice = createSlice({
     builder
 
       // ================= FETCH USERS =================
-      .addCase(fetchUsers.pending, (state) => {
+      .addCase(fetchUsers.pending, (state) => { 
         state.loading = true;
       })
 
@@ -115,18 +122,18 @@ export const userSlice = createSlice({
 
       // ================= CURRENT USER =================
       .addCase(getCurrentUser.pending, (state) => {
-        state.loading = true;
+        state.authLoading = true;
       })
 
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.loading = false;
+        state.authLoading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
         state.error = null;
       })
 
       .addCase(getCurrentUser.rejected, (state, action) => {
-        state.loading = false;
+        state.authLoading = false;
         state.user = null;
         state.isAuthenticated = false;
         state.error = action.payload;
