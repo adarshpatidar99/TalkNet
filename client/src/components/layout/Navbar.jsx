@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { HiDotsVertical } from "react-icons/hi";
@@ -48,7 +48,6 @@ const Navbar = () => {
 
   return (
     <>
-      <ToastContainer />
       <nav className="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-[20px] border-b border-slate-200/70">
         <div className="mx-auto flex h-[60px] md:h-[56px] max-w-[1280px] items-center justify-between px-4 md:px-6">
 
